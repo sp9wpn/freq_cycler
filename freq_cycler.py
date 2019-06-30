@@ -28,8 +28,9 @@ def verbose(t):
 
 
 default_external_urls = [
-	'http://radiosondy.info/export/csv_live.php',
-	'http://skp.wodzislaw.pl/sondy/last.php'
+	#'http://radiosondy.info/export/csv_live.php',
+	#'http://skp.wodzislaw.pl/sondy/last.php'
+	'/tmp/sonde2.csv'
 	]
 
 
@@ -101,13 +102,12 @@ sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM
 
 q = Queue.Queue()
 exit_script = Event()
-stop_APRS = Event()
 
 
 def thread_external_sondelist(url):
   while not exit_script.is_set():
     read_csv(url,True)
-    exit_script.wait(180)
+    exit_script.wait(18)
 
 
 def thread_read_udpgate_log(filename):
@@ -808,7 +808,6 @@ while not exit_script.is_set():
             if ( dbc.rowcount > 0
                  and not args.q ):
               print ("Sonde landing detected: " + d[0] + " (%.3f)" % (d[1]/1000.0))
-            stop_APRS.set()
         except:
           print "ERROR when checking for landing:"
           print d
@@ -843,20 +842,19 @@ while not exit_script.is_set():
           else:
             print "APRS cycle: %ds (interval %ds)" % (aprs_cycle,aprs_interval)
 
-	; create flag
+        # create flag
         if config.has_option('aprs_cycles','AprsFlagFile'):
           open(config.get('aprs_cycles','AprsFlagFile'), 'a').close()
 
         write_sdrtst_config_aprs()
 
-        aprs_last_cycle = time.time()
-        stop_APRS.wait(aprs_cycle)
-        if stop_APRS.is_set():
-          print "stop_APRS Event still set"
+        exit_script.wait(aprs_cycle)
 
-	; delete flag
+        aprs_last_cycle = time.time()
+
+        # delete flag
         if config.has_option('aprs_cycles','AprsFlagFile'):
-          os.remove(config.get('aprs_cycles','AprsFlagFile')
+          os.remove(config.get('aprs_cycles','AprsFlagFile'))
 
     except:
       print "APRS cycles configuration error"
