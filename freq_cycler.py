@@ -40,9 +40,10 @@ mut_excl_group1.add_argument('-csv', metavar='<url>', action='append', help='URL
 mut_excl_group1.add_argument('-no-external-csv', action='store_true', help='disable reading CSV from external sites')
 
 argparser.add_argument('-udplog', metavar='<file>', help='read APRS data udpgate4 log')
-argparser.add_argument('-aprs', metavar='<IP:port>', action='append', help='read APRS data from TCP connection')
+argparser.add_argument('-aprslog', metavar='<IP:port>', action='append', help='read sondes APRS data from TCP connection')
 
 argparser.add_argument('-slave', action='store_true', help='do not read file/web/APRS data (for multi-SDR operation)')
+argparser.add_argument('-aprsscan', action='store_true', help='enable extra 70cm APRS reception cycles, see readme')
 argparser.add_argument('-c', metavar='<num>', help='RTL max open channels (default: 4)', default=4)
 argparser.add_argument('-bc', metavar='<num|percent%>', help='channels reserved for blind-scanning (default: 25%% of max channels')
 argparser.add_argument('-no-blind', action='store_true', help='disable blind-scanning')
@@ -825,12 +826,18 @@ while not exit_script.is_set():
 
 
   # APRS cycle
-  if config.has_option('aprs_cycles','AprsCycle'):
+  if args.aprsscan and config.has_option('aprs_cycles','AprsCycle') and config.has_option('aprs_cycles','AprsInterval'):
     try:
       if last_aprs_log_update() + 300 > time.time():
         verbose("APRS 70cm is active, using special APRS cycle times")
-        aprs_cycle=config.getint('aprs_cycles','ActiveAprsCycle')
-        aprs_interval=config.getint('aprs_cycles','ActiveAprsInterval')
+        try:
+          aprs_cycle=config.getint('aprs_cycles','ActiveAprsCycle')
+          aprs_interval=config.getint('aprs_cycles','ActiveAprsInterval')
+        except:
+          verbose("ActiveAprsCycle and ActiveAprsInterval not set, using standard values.")
+          aprs_cycle=config.getint('aprs_cycles','AprsCycle')
+          aprs_interval=config.getint('aprs_cycles','AprsInterval')
+          pass
       else:
         aprs_cycle=config.getint('aprs_cycles','AprsCycle')
         aprs_interval=config.getint('aprs_cycles','AprsInterval')

@@ -18,7 +18,7 @@ według potrzeb.
 
 
 Użycie: freq_cycler.py [-h] [-csv <url> | -no-external-csv] [-udplog <plik>]
-                       [-aprs <IP:port>] [-slave] [-c <num>]
+                       [-aprslog <IP:port>] [-slave] [-c <num>]
                        [-bc <num|procent%>] [-no-blind] [-f <kHz> <kHz>]
                        [-ppm <ppm>] [-agc <0|1>] [-gain <wzmoc|auto>]
                        [-bw <kHz>] [-v | -q]
@@ -32,10 +32,11 @@ argumenty opcjonalne:
   -h, --help          pokaż tę instrukcję i zakończ
   -csv <url>          URL z danymi na zewnętrznym serwerze (szczegóły poniżej)
   -no-external-csv    wyłącz pobieranie danych CSV z zewnętrznych stron
-  -aprs <IP:port>     czytaj dane APRS z połączenia TCP
+  -aprslog <IP:port>     czytaj dane APRS z połączenia TCP
   -udplog <file>      czytaj dane APRS z logu udpgate4
   -slave              nie czytaj danych z pliku/strony/APRS (dla pracy z wieloma
                       SDR, szczegóły poniżej)
+  -aprsscan           dodatkowe cykle odbioru APRS 70cm, szczegóły w readme
   -c <num>            maksymalna ilość kanałów jednego SDR (domyślnie: 4)
   -bc <num|procent%>  ilość kanałów zarezerwowana dla ślepego skanowania
                       (domyślnie: 25% max. ilości kanałów)
@@ -99,7 +100,7 @@ jej na ramdysku.
 Możesz użyć opcji -f aby ograniczyć zakres częstotliwości dla każdego SDR,
 poprawi to optymalizację pokrycia częstotliwości. Zakresy mogą się nakładać.
 
-Skrypt w trybie -slave ignoruje parametry -csv, -udplog i -aprs
+Skrypt w trybie -slave ignoruje parametry -csv, -udplog i -aprslog
 
 
 
@@ -112,6 +113,21 @@ zostanie uruchomiony i temperatura odczytana z jego wyjścia. Zwykłe pliki (jak
 /sys/class/thermal/thermal_zone0/temp) są odczytywane bezpośrednio. Ilość
 kanałów jest ustawiana proporcjonalnie pomiędzy LowTemp (niska temperatura)
 oraz HighTemp (wysoka).
+
+
+
+                     * * *  Skanowanie APRS * * *
+
+Ta funkcja pozwala Twojej stacji odbieranie zarówno sond, jak i APRS 70cm.
+Pojawiają się dodatkowe "cykle APRS", w czasie których SDR jest ustawiany do
+odbioru częstotliwości 432.500. Musisz przekierować strumień dźwięku do
+programowego dekodera APRS (np. direwolf).
+Takie przekierowanie można zrobić z użyciem opcji sondeudp -D wskazując
+nazwaną kolejkę (FIFO), która z kolei będzie odbierana przez modem. W czasie
+cyklu APRS jest to surowy, jednokanałowy (mono) strumień.
+Skrypt monitoruje log APRS i jeśli cokolwiek zostanie odebrane, mogą być
+ustawione dłuższe cykle APRS.
+Ustawienia znajdują się w pliku konfiguracyjnym.
 
 
 

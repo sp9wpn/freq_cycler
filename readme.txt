@@ -15,7 +15,7 @@ Please check the example config file (config.cfg) and edit as required.
 
 
 usage: freq_cycler.py [-h] [-csv <url> | -no-external-csv] [-udplog <file>]
-                      [-aprs <IP:port>] [-slave] [-c <num>]
+                      [-aprslog <IP:port>] [-slave] [-c <num>]
                       [-bc <num|percent%>] [-no-blind] [-f <kHz> <kHz>]
                       [-ppm <ppm>] [-agc <0|1>] [-gain <gain|auto>]
                       [-bw <kHz>] [-v | -q]
@@ -29,10 +29,11 @@ optional arguments:
   -h, --help          show this help message and exit
   -csv <url>          URL of data from external server (see below)
   -no-external-csv    disable reading CSV from external sites
-  -aprs <IP:port>     read APRS data from TCP connection
+  -aprslog <IP:port>  read APRS data from TCP connection
   -udplog <file>      read APRS data udpgate4 log
   -slave              do not read file/web/APRS data (for multi-SDR operation,
                       see below)
+  -aprsscan           enable extra 70cm APRS reception cycles, see readme
   -c <num>            RTL max open channels (default: 4)
   -bc <num|percent%>  channels reserved for blind-scanning (default: 25% of max
                       channels
@@ -94,7 +95,7 @@ share the database. It is highly recommended to use ramdisk for database.
 You can use -f option to limit frequency range for each receiver, this will
 optimise coverage of band. Ranges can overlap.
 
-Script running as slave ignores -csv, -udplog and -aprs arguments.
+Script running as slave ignores -csv, -udplog and -aprslog arguments.
 
 
 
@@ -107,6 +108,19 @@ temperature is read from output. Ordinary files (like
 /sys/class/thermal/thermal_zone0/temp) are read directly. Number of channels is
 adjusted proportionally between defined LowTemp and HighTemp.
 
+
+
+                     * * *  APRS scanning * * *
+
+This feature allows your station to work both sondes and APRS 70cm. Extra
+"APRS cycles" will be introduced which tune SDR to 432.500 frequency. You have
+to redirect soundstream to software APRS decoder like direwolf.
+This redirection can be made with sondeudp -D option indicating a FIFO
+named pipe, which will be read by software modem. This stream is raw
+single-channel (mono) during APRS cycle.
+Script monitors APRS log and if something is received, longer APRS cycles
+may be used.
+Szczegółowe informacje są w pliku konfiguracyjnym.
 
 
                      * * *  Examples  * * *
