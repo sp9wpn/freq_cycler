@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.6 (19.04.2019)
+# v1.7 (30.06.2019)
 # BSD licence
 
 import os
@@ -31,7 +31,6 @@ default_external_urls = [
 	'http://radiosondy.info/export/csv_live.php',
 	'http://skp.wodzislaw.pl/sondy/last.php'
 	]
-
 
 
 argparser = argparse.ArgumentParser(description='Smart frequency cycler for dxlAPRS radiosonde decoder.')
@@ -181,7 +180,7 @@ def thread_read_APRS(ip,port):
 
 
 def init(z1,z2):
-  global config,freq_range,qth
+  global config,freq_range,qth,aprs_last_cycle
 
   if not os.path.isfile(args.config):
     print "ERROR: config file not found: " + args.config
@@ -211,6 +210,8 @@ def init(z1,z2):
     freq_range = (400000,406000)				# default
 
   qth=(config.getfloat('main','QTHlat'),config.getfloat('main','QTHlon'))
+
+  aprs_last_cycle = time.time()
 
 
 
@@ -283,7 +284,6 @@ def mark_landing_mode(freqs):
       print ("Entering landing mode: (%.3f)" % (f[0]/1000.0))
 
   db.commit()
-
 
 
 def write_sdrtst_config(freqs):
@@ -362,7 +362,42 @@ def write_sdrtst_config(freqs):
       else:
         txt += ' '
 
-  print txt
+    print txt
+
+
+
+def write_sdrtst_config_aprs():
+  oldmask = os.umask (000)
+  try:
+    tmp=open(args.output+'.tmp','w')
+
+    if args.ppm != None:
+      tmp.write('p 5 '+str(args.ppm)+"\n")
+
+    tmp.write('p 8 '+str(args.agc)+"\n")
+
+    if args.gain:
+      if args.gain == 'auto':
+        tmp.write('p 3 1'+"\n")
+      else:
+        tmp.write('p 3 0'+"\n")
+        tmp.write('p 4 '+ "%d" % (float(args.gain) * 10) +"\n")
+
+  except:
+    os.umask (oldmask)
+    print "ERROR: error writing tmp file: " + args.output + ".tmp"
+    return 0
+
+  tmp.write(config.get('aprs_cycles','AprsSdrtstConfig').strip('"')+"\n")
+
+  os.umask (oldmask)
+  tmp.close()
+
+  try:
+    os.rename(args.output+'.tmp',args.output)
+  except:
+    print "ERROR: error writing file: " + args.output + ".tmp"
+    return 0
 
 
 
@@ -520,6 +555,22 @@ def APRS_decode(line,source=''):
   except:
     pass
 
+
+
+def last_aprs_log_update():
+  try:
+    aprslog = config.get('aprs_cycles','AprsLog')
+
+    if os.path.isdir(aprslog):
+      lastupdate=0
+      for file in os.listdir(aprslog):
+        lastupdate=max(lastupdate,os.path.getmtime(aprslog+"/"+file))
+    elif os.path.isfile(aprslog):
+      lastupdate=os.path.getmtime(aprslog)
+
+    return int(lastupdate)
+  except:
+    return -1
 
 
 def auto_channels():
@@ -771,6 +822,32 @@ while not exit_script.is_set():
     db.commit()
 
 
+
+  # APRS cycle
+  if config.has_option('aprs_cycles','AprsCycle'):
+    try:
+      if last_aprs_log_update() + 300 > time.time():
+        verbose("APRS 70cm is active, using special APRS cycle times")
+        aprs_cycle=config.getint('aprs_cycles','ActiveAprsCycle')
+        aprs_interval=config.getint('aprs_cycles','ActiveAprsInterval')
+      else:
+        aprs_cycle=config.getint('aprs_cycles','AprsCycle')
+        aprs_interval=config.getint('aprs_cycles','AprsInterval')
+
+      if aprs_last_cycle + aprs_interval < time.time():
+        if not args.q:
+          if not args.v:
+            print "APRS cycle"
+          else:
+            print "APRS cycle: %ds (interval %ds)" % (aprs_cycle,aprs_interval)
+
+        write_sdrtst_config_aprs()
+        aprs_last_cycle = time.time()
+        time.sleep(aprs_cycle)
+
+    except:
+      print "APRS cycles configuration error"
+      pass
 
 
   if config.has_option('auto_channels','Sensor'):
