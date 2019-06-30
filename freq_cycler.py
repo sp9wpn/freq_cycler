@@ -637,8 +637,8 @@ if not args.slave:
     time.sleep(0.05)
 
 
-  if args.aprs:
-    for aprs_ip in args.aprs:
+  if args.aprslog:
+    for aprs_ip in args.aprslog:
       if ':' in aprs_ip:
         (ip,port) = aprs_ip.split(':')
       else:
