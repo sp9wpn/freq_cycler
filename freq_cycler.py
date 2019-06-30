@@ -101,6 +101,7 @@ sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM
 
 q = Queue.Queue()
 exit_script = Event()
+stop_APRS = Event()
 
 
 def thread_external_sondelist(url):
@@ -807,6 +808,7 @@ while not exit_script.is_set():
             if ( dbc.rowcount > 0
                  and not args.q ):
               print ("Sonde landing detected: " + d[0] + " (%.3f)" % (d[1]/1000.0))
+            stop_APRS.set()
         except:
           print "ERROR when checking for landing:"
           print d
@@ -843,7 +845,9 @@ while not exit_script.is_set():
 
         write_sdrtst_config_aprs()
         aprs_last_cycle = time.time()
-        time.sleep(aprs_cycle)
+        stop_APRS.wait(aprs_cycle)
+        if stop_APRS.is_set():
+          print "stop_APRS Event still set"
 
     except:
       print "APRS cycles configuration error"
@@ -922,7 +926,7 @@ while not exit_script.is_set():
     add_freqs(freq_list)
 
 
-  # let's write sdrtst config
+  # write sdrtst config
   if landing_lock:
     verbose("landing mode active, doing nothing...")
   elif [[x[0],x[1]] for x in selected_freqs] != [[x[0],x[1]] for x in old_selected_freqs]:
