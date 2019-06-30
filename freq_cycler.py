@@ -841,9 +841,18 @@ while not exit_script.is_set():
           else:
             print "APRS cycle: %ds (interval %ds)" % (aprs_cycle,aprs_interval)
 
+	; create flag
+        if config.has_option('aprs_cycles','AprsFlagFile'):
+          open(config.get('aprs_cycles','AprsFlagFile'), 'a').close()
+
         write_sdrtst_config_aprs()
+
         aprs_last_cycle = time.time()
         time.sleep(aprs_cycle)
+
+	; delete flag
+        if config.has_option('aprs_cycles','AprsFlagFile'):
+          os.remove(config.get('aprs_cycles','AprsFlagFile')
 
     except:
       print "APRS cycles configuration error"
