@@ -28,9 +28,8 @@ def verbose(t):
 
 
 default_external_urls = [
-	#'http://radiosondy.info/export/csv_live.php',
-	#'http://skp.wodzislaw.pl/sondy/last.php'
-	'/tmp/sonde2.csv'
+	'http://radiosondy.info/export/csv_live.php',
+	'http://skp.wodzislaw.pl/sondy/last.php'
 	]
 
 
@@ -108,7 +107,7 @@ exit_script = Event()
 def thread_external_sondelist(url):
   while not exit_script.is_set():
     read_csv(url,True)
-    exit_script.wait(18)
+    exit_script.wait(180)
 
 
 def thread_read_udpgate_log(filename):
