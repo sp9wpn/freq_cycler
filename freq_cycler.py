@@ -99,6 +99,7 @@ sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM
 #   3 - heard by us
 
 
+aprs_interval = 0
 
 q = Queue.Queue()
 exit_script = Event()
