@@ -1,4 +1,4 @@
-#!/usr/bin/python2 -u
+remote_cfg = #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
 # v1.6 (19.04.2019)
@@ -42,6 +42,7 @@ mut_excl_group1.add_argument('-no-external-csv', action='store_true', help='disa
 argparser.add_argument('-udplog', metavar='<file>', help='read APRS data udpgate4 log')
 argparser.add_argument('-aprs', metavar='<IP:port>', action='append', help='read APRS data from TCP connection')
 
+argparser.add_argument('-remote', metavar='<url>', action='append', help='URL of remote control (override) file')
 argparser.add_argument('-slave', action='store_true', help='do not read file/web/APRS data (for multi-SDR operation)')
 argparser.add_argument('-c', metavar='<num>', help='RTL max open channels (default: 4)', default=4)
 argparser.add_argument('-bc', metavar='<num|percent%>', help='channels reserved for blind-scanning (default: 25%% of max channels')
@@ -99,6 +100,7 @@ sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM
 #   3 - heard by us
 
 
+remote_control_last_check = 0
 
 q = Queue.Queue()
 exit_script = Event()
@@ -696,6 +698,18 @@ else:									# slave mode
 
 # MAIN LOOP
 while not exit_script.is_set():
+  # remote control
+  if (args.remote and remote_control_last_check + 90 < time.time()):
+    try:
+      for line in urllib.urlopen(args.remote):
+        print "Remote " + line
+
+    except:
+      echo "Remote control error, aborting";
+      pass
+
+
+
   if not args.slave:
 
     read_csv('/tmp/sonde.csv')
