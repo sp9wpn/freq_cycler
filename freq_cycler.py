@@ -823,42 +823,33 @@ while not exit_script.is_set():
     db.commit()
 
 
-
   # APRS cycle
   if args.aprsscan and config.has_option('aprs_cycles','AprsCycle') and config.has_option('aprs_cycles','AprsInterval'):
     try:
-      if last_aprs_log_update() + 300 > time.time():
-        verbose("APRS 70cm is active, using special APRS cycle times")
-        try:
-          aprs_cycle=config.getint('aprs_cycles','ActiveAprsCycle')
-          aprs_interval=config.getint('aprs_cycles','ActiveAprsInterval')
-        except:
-          verbose("ActiveAprsCycle and ActiveAprsInterval not set, using standard values.")
-          aprs_cycle=config.getint('aprs_cycles','AprsCycle')
-          aprs_interval=config.getint('aprs_cycles','AprsInterval')
-          pass
-      else:
-        aprs_cycle=config.getint('aprs_cycles','AprsCycle')
-        aprs_interval=config.getint('aprs_cycles','AprsInterval')
 
       if aprs_last_cycle + aprs_interval < time.time():
         if not args.q:
-          if not args.v:
-            print "APRS cycle"
-          else:
-            print "APRS cycle: %ds (interval %ds)" % (aprs_cycle,aprs_interval)
+          print "APRS cycle"
 
-        # create flag
+        # create flag file
         if config.has_option('aprs_cycles','AprsFlagFile'):
           open(config.get('aprs_cycles','AprsFlagFile'), 'a').close()
 
         write_sdrtst_config_aprs()
 
-        exit_script.wait(aprs_cycle)
+        exit_script.wait(config.getint('aprs_cycles','AprsCycle'))
+
+        # check if something was heard
+        if last_aprs_log_update() + 300 > time.time():
+          verbose("APRS 70cm is active, extending APRS cycle")
+          aprs_interval=config.getint('aprs_cycles','ActiveAprsInterval')
+          exit_script.wait(config.getint('aprs_cycles','ActiveAprsCycle') - config.getint('aprs_cycles','AprsCycle'))
+        else:
+          aprs_interval=config.getint('aprs_cycles','AprsInterval')
 
         aprs_last_cycle = time.time()
 
-        # delete flag
+        # delete flag file
         if config.has_option('aprs_cycles','AprsFlagFile'):
           os.remove(config.get('aprs_cycles','AprsFlagFile'))
 
