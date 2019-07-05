@@ -7,6 +7,46 @@
 #include <unistd.h> // library for fcntl function 
 #include <fcntl.h> // library for fcntl function 
 
+/*
+############################################
+
+Compile with:
+gcc aprs_stream_copy.c -o aprs_stream_copy
+
+Program copies datastreams from input to output
+
+Usage:
+./aprs_stream_copy <flagfile> <input> <output>
+	<flagfile>     if this file does NOT exists, pause copying data to output
+                       (while still reading input)
+        <input>        input file (usually pipe), use "-" for stdin
+        <output>       output file (usually pipe), use "-" for stdout
+
+Example:
+./aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /tmp/sound.fifo -
+
+
+############################################
+
+Kompilacja:
+
+gcc aprs_stream_copy.c -o aprs_stream_copy
+
+Program kopiuje strumień danych z wejścia na wyjście
+
+Użycie:
+./aprs_stream_copy <plik_flagi> <wejscie> <wyjscie>
+	<flagfile>     jeśli ten plik NIE istnieje, to nie kopiuj danych na wyjście
+                       (wejście jest nadal odczytywane)
+        <input>        plik wejściowy (zwykle potok), "-" oznacza standardowe wejście
+        <output>       plik wyjściowy (zwykle potok), "-" oznacza standardowe wyjście
+
+Przykład:
+./aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /tmp/sound.fifo -
+
+############################################
+*/
+
 #define BUFSIZE (20*1024)
 
 int clear_buffer = 0;
