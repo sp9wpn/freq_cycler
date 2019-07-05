@@ -44,7 +44,7 @@ int main(int argc, char **argv)
   if (argc == 2 || strcmp(argv[3],"-")==0)
       fout_fd = STDOUT_FILENO;
   else {
-    fout_fd = open (argv[3], O_WRONLY || O_NONBLOCK || O_ASYNC );
+    fout_fd = open (argv[3], O_WRONLY || O_NONBLOCK );
     if (fout_fd < 0)
     {
       fprintf (stderr,"Error opening output file: %s\n", strerror (errno));
@@ -70,14 +70,18 @@ int main(int argc, char **argv)
       bytes = read (fin_fd, buf, sizeof(buf));
       if (bytes > 0) {
         if( file_exist(argv[1]) ) {
-            clear_buffer = 40;
+            clear_buffer = 8;
             write(fout_fd, buf, bytes);
+            if (bytes % 4 != 0)
+                write(fout_fd, buf, bytes % 4);				// make sure there were 32 bits written
             nanosleep((const struct timespec[]){{0, 50000000L}}, NULL); // 0.05 sec
         } else {
             if (clear_buffer > 0) {
                 write(fout_fd, buf, bytes);
+                if (bytes % 4 != 0)
+                    write(fout_fd, buf, bytes % 4);
                 clear_buffer--;
-                nanosleep((const struct timespec[]){{0, 10000000L}}, NULL); // 0.01 sec
+                nanosleep((const struct timespec[]){{0, 10000000L}}, NULL); // 0.05 sec
             }
             
         }

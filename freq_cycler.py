@@ -182,7 +182,7 @@ def thread_read_APRS(ip,port):
 
 
 def init(z1,z2):
-  global config,freq_range,qth,aprs_last_cycle
+  global config,freq_range,qth,aprs_last_cycle,aprs_interval
 
   if not os.path.isfile(args.config):
     print "ERROR: config file not found: " + args.config
@@ -214,8 +214,11 @@ def init(z1,z2):
   qth=(config.getfloat('main','QTHlat'),config.getfloat('main','QTHlon'))
 
   aprs_last_cycle = time.time()
-
-
+  try:
+    aprs_interval=config.getint('aprs_cycles','AprsInterval')
+  except:
+    aprs_interval=180
+    pass
 
 
 
