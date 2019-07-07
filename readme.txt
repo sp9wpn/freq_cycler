@@ -60,8 +60,8 @@ locally received sondes, freq_cycler needs to read log by local udpgate4. You
 need to use at least level 2 logging in udpgate4, eg. -l 2:/tmp/udpgate.log Use
 -udplog <file> parameter to point freq_cycler to this log file.
 
-2. As dxlAPRS does not decode M10 and PilotSondes, completely remove relevant
-sections from the config file, leave only "sonde_standard".
+2. As dxlAPRS does not decode PilotSondes, remove relevant section from the
+config file [sonde_pilotsonde].
 
 3. Original sdrtst config lines do not use "AFC offset", so you have to remove
 SECOND element from SdrtstTemplate line in the config file.
