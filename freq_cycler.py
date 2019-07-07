@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.6 (19.04.2019)
+# v1.7 (07.07.2019)
 # BSD licence
 
 import os

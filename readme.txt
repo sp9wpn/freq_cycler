@@ -15,7 +15,7 @@ Please check the example config file (config.cfg) and edit as required.
 
 
 usage: freq_cycler.py [-h] [-csv <url> | -no-external-csv] [-udplog <file>]
-                      [-aprs <IP:port>] [-slave] [-c <num>]
+                      [-aprs <IP:port>] [-remote <url>] [-slave] [-c <num>]
                       [-bc <num|percent%>] [-no-blind] [-f <kHz> <kHz>]
                       [-ppm <ppm>] [-agc <0|1>] [-gain <gain|auto>]
                       [-bw <kHz>] [-v | -q]
@@ -29,8 +29,9 @@ optional arguments:
   -h, --help          show this help message and exit
   -csv <url>          URL of data from external server (see below)
   -no-external-csv    disable reading CSV from external sites
-  -aprs <IP:port>     read APRS data from TCP connection
   -udplog <file>      read APRS data udpgate4 log
+  -aprs <IP:port>     read APRS data from TCP connection
+  -remote <url>       URL of remote control (override) file
   -slave              do not read file/web/APRS data (for multi-SDR operation,
                       see below)
   -c <num>            RTL max open channels (default: 4)
@@ -77,6 +78,19 @@ When -csv is not used, default list of URLs is as follow:
  * http://skp.wodzislaw.pl/sondy/last.php
 
 To disable this feature completely, use -no-external-csv
+
+
+
+                     * * *  Remote control override  * * *
+
+The -remote argument points to URL which is checked each 90 seconds. If it is
+non-empty, this file is directly copied as sdrtst configuration. During this time,
+freq_cycler ceases to perform it's normal cycles. The file expires after 60
+minutes or when it's no longer valid.
+Two special lines may appear in the remote control file. First is eg. "#E:1562511131"
+and contains file creation time (as UNIX epoch) which will be used for expiration.
+Second is eg. "#G:52.1,17.4,150", which limits remote file range to 150km radius from
+coordinates 52.1 017.4.
 
 
 
