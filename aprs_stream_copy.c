@@ -37,7 +37,7 @@ gcc aprs_stream_copy.c -o aprs_stream_copy
 
 Program kopiuje strumień danych z wejścia na wyjście używając pliku jako przełącznika.
 
-Celem jest uniknięcie dekodowanie wielokanałowego strumienia z innych częstotliwości
+Celem jest uniknięcie dekodowania wielokanałowego strumienia z innych częstotliwości
 przez dekoder APRS (np. direwolf). Oszczędza to sporo zasobów CPU.
 
 Użycie:
