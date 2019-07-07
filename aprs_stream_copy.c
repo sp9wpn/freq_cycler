@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <unistd.h> // library for fcntl function 
-#include <fcntl.h> // library for fcntl function 
+#include <unistd.h> // library for fcntl function
+#include <fcntl.h> // library for fcntl function
 
 /*
 ############################################
@@ -62,7 +62,7 @@ int clear_buffer = 0;
 
 int file_exist (char *filename)
 {
-  struct stat   buffer;   
+  struct stat   buffer;
   return (stat (filename, &buffer) == 0);
 }
 
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
                 clear_buffer--;
                 nanosleep((const struct timespec[]){{0, 10000000L}}, NULL); // 0.05 sec
             }
-            
+
         }
       } else if (bytes == 0) {			// EOF
           return 0;
