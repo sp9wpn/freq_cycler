@@ -13,7 +13,10 @@
 Compile with:
 gcc aprs_stream_copy.c -o aprs_stream_copy
 
-Program copies datastreams from input to output
+Program copies datastreams from input to output using a file as a switch.
+
+The purpose is to stop APRS decoder (eg. direwolf) from deconding multi-channel
+a sound stream from non-APRS frequencies. This saves a lot of CPU.
 
 Usage:
 ./aprs_stream_copy <flagfile> <input> <output>
@@ -32,17 +35,21 @@ Kompilacja:
 
 gcc aprs_stream_copy.c -o aprs_stream_copy
 
-Program kopiuje strumień danych z wejścia na wyjście
+Program kopiuje strumień danych z wejścia na wyjście używając pliku jako przełącznika.
+
+Celem jest uniknięcie dekodowanie wielokanałowego strumienia z innych częstotliwości
+przez dekoder APRS (np. direwolf). Oszczędza to sporo zasobów CPU.
 
 Użycie:
 ./aprs_stream_copy <plik_flagi> <wejscie> <wyjscie>
-	<flagfile>     jeśli ten plik NIE istnieje, to nie kopiuj danych na wyjście
+	<flagfile>     jeśli ten plik NIE istnieje, nie kopiuj danych na wyjście
                        (wejście jest nadal odczytywane)
         <input>        plik wejściowy (zwykle potok), "-" oznacza standardowe wejście
         <output>       plik wyjściowy (zwykle potok), "-" oznacza standardowe wyjście
 
 Przykład:
 ./aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /tmp/sound.fifo -
+
 
 ############################################
 */
@@ -96,7 +103,7 @@ int main(int argc, char **argv)
   fd_set fds;
 
 
-  while (1)					// tutaj poprawic na kontrole wyjscia z read()
+  while (1)
     {
       FD_ZERO(&fds);				// Clear FD set for select
       FD_SET(fin_fd, &fds);

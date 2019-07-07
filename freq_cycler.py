@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.7 (30.06.2019)
+# v1.7 (07.07.2019)
 # BSD licence
 
 import os
@@ -844,7 +844,7 @@ while not exit_script.is_set():
         exit_script.wait(config.getint('aprs_cycles','AprsCycle'))
 
         # check if something was heard
-        if last_aprs_log_update() + 300 > time.time():
+        if last_aprs_log_update() + 600 > time.time():
           verbose("APRS 70cm is active, extending APRS cycle")
           aprs_interval=config.getint('aprs_cycles','ActiveAprsInterval')
           exit_script.wait(config.getint('aprs_cycles','ActiveAprsCycle') - config.getint('aprs_cycles','AprsCycle'))
@@ -861,6 +861,9 @@ while not exit_script.is_set():
       print "APRS cycles configuration error"
       pass
 
+
+  if exit_script.is_set():
+    break;
 
   if config.has_option('auto_channels','Sensor'):
     auto_channels()

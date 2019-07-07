@@ -32,7 +32,7 @@ argumenty opcjonalne:
   -h, --help          pokaż tę instrukcję i zakończ
   -csv <url>          URL z danymi na zewnętrznym serwerze (szczegóły poniżej)
   -no-external-csv    wyłącz pobieranie danych CSV z zewnętrznych stron
-  -aprslog <IP:port>     czytaj dane APRS z połączenia TCP
+  -aprslog <IP:port>  czytaj dane APRS z połączenia TCP
   -udplog <file>      czytaj dane APRS z logu udpgate4
   -slave              nie czytaj danych z pliku/strony/APRS (dla pracy z wieloma
                       SDR, szczegóły poniżej)
