@@ -17,6 +17,9 @@ import signal
 import urllib
 import csv
 import Queue
+import email.utils
+import datetime
+import calendar
 from math import sin, cos, sqrt, atan2, radians
 from threading import Thread
 from threading import Event
@@ -41,6 +44,7 @@ mut_excl_group1.add_argument('-no-external-csv', action='store_true', help='disa
 argparser.add_argument('-udplog', metavar='<file>', help='read APRS data udpgate4 log')
 argparser.add_argument('-aprslog', metavar='<IP:port>', action='append', help='read sondes APRS data from TCP connection')
 
+argparser.add_argument('-remote', metavar='<url>', help='URL of remote control (override) file')
 argparser.add_argument('-slave', action='store_true', help='do not read file/web/APRS data (for multi-SDR operation)')
 argparser.add_argument('-aprsscan', action='store_true', help='enable extra 70cm APRS reception cycles, see readme')
 argparser.add_argument('-c', metavar='<num>', help='RTL max open channels (default: 4)', default=4)
@@ -100,6 +104,7 @@ sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM
 
 
 aprs_interval = 0
+remote_control_last_check = 0
 
 q = Queue.Queue()
 exit_script = Event()
@@ -752,6 +757,85 @@ else:									# slave mode
 
 # MAIN LOOP
 while not exit_script.is_set():
+
+  # remote control
+  if (args.remote and remote_control_last_check + 90 < time.time()):
+    try:
+      remote_control_last_check = time.time();
+      remote_sdrtst_cfg = ""
+      remote_data = urllib.urlopen(args.remote)
+
+      if remote_data.getcode() != 200:
+        continue
+      if int(remote_data.info()["Content-Length"]) < 10:
+        continue
+
+      try:
+        if calendar.timegm(email.utils.parsedate(remote_data.info()["Last-Modified"])) + 3600 < time.time():
+          verbose("Remote control file expired (HTTP)")
+          continue
+      except:
+        pass
+
+
+      remote_invalid = False
+      valid_lines = 0
+
+      for line in remote_data:
+        line = line.strip()
+
+        if line[0:3] == "#E:":						# check expiration
+          if int(line[3:])+3600 < time.time():
+            verbose("Remote control file expired")
+            remote_invalid = True
+            break
+
+        if line[0:3] == '#G:':
+          g = line[3:].split(',',2)
+          if calc_distance((g[0],g[1]),qth) > int(g[2]):
+            verbose("Remote control file out of geo range")
+            remote_invalid = True
+            break
+
+        if line[0:1] != '#' and len(line) > 10:
+          valid_lines += 1
+
+        remote_sdrtst_cfg += line + "\n"
+
+      if remote_invalid:
+        continue						# restart main loop
+
+      if valid_lines == 0:
+        verbose("No valid lines in remote config")
+        continue						# restart main loop
+
+
+      # write sdrtst config file
+      try:
+        oldmask = os.umask (000)
+        tmp=open(args.output+'.tmp','w')
+        tmp.write(remote_sdrtst_cfg + "\n")
+        os.umask (oldmask)
+        tmp.close()
+        os.rename(args.output+'.tmp',args.output)
+
+        print "Using remote config " + args.remote
+      except:
+        print "ERROR: error writing file: " + args.output + ".tmp"
+        raise
+
+      exit_script.wait(90)
+      continue
+
+    except:
+      print "Remote control error";
+      pass
+
+
+  if exit_script.is_set():
+    break;
+
+
   if not args.slave:
 
     read_csv('/tmp/sonde.csv')
@@ -825,6 +909,10 @@ while not exit_script.is_set():
 			  AND status_expire < datetime('now')""")
     dbc.execute("DELETE FROM freqs WHERE status_expire < datetime('now','-2 hours')")
     db.commit()
+
+
+  if exit_script.is_set():
+    break;
 
 
   # APRS cycle

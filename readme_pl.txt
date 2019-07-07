@@ -18,10 +18,10 @@ według potrzeb.
 
 
 Użycie: freq_cycler.py [-h] [-csv <url> | -no-external-csv] [-udplog <plik>]
-                       [-aprslog <IP:port>] [-slave] [-c <num>]
-                       [-bc <num|procent%>] [-no-blind] [-f <kHz> <kHz>]
-                       [-ppm <ppm>] [-agc <0|1>] [-gain <wzmoc|auto>]
-                       [-bw <kHz>] [-v | -q]
+                       [-aprslog <IP:port>] [-remote <url>] [-slave]
+                       [-aprsscan] [-c <num>] [-bc <num|procent%>] [-no-blind]
+                       [-f <kHz> <kHz>] [-ppm <ppm>] [-agc <0|1>]
+                       [-gain <wzmoc|auto>] [-bw <kHz>] [-v | -q]
                        konfig wyjście
 
 argumenty obowiązkowe:
@@ -29,14 +29,15 @@ argumenty obowiązkowe:
   wyjscie           plik dla sdrtst, do którego nastąpi zapis
 
 argumenty opcjonalne:
-  -h, --help          pokaż tę instrukcję i zakończ
+  -h, --help          pokaż instrukcję i zakończ
   -csv <url>          URL z danymi na zewnętrznym serwerze (szczegóły poniżej)
   -no-external-csv    wyłącz pobieranie danych CSV z zewnętrznych stron
-  -aprslog <IP:port>  czytaj dane APRS z połączenia TCP
   -udplog <file>      czytaj dane APRS z logu udpgate4
+  -aprslog <IP:port>  czytaj dane APRS z połączenia TCP
+  -remote <url>       URL z plikiem zdalnej kontroli (wymuszenie parametrów)
   -slave              nie czytaj danych z pliku/strony/APRS (dla pracy z wieloma
                       SDR, szczegóły poniżej)
-  -aprsscan           dodatkowe cykle odbioru APRS 70cm, szczegóły w readme
+  -aprsscan           dodatkowe cykle odbioru APRS 70cm
   -c <num>            maksymalna ilość kanałów jednego SDR (domyślnie: 4)
   -bc <num|procent%>  ilość kanałów zarezerwowana dla ślepego skanowania
                       (domyślnie: 25% max. ilości kanałów)
@@ -82,6 +83,20 @@ Jeśli -csv nie zostanie użyte, domyślna lista adresów jest następująca:
  * http://skp.wodzislaw.pl/sondy/last.php
 
 Aby całkowicie wyłączyć tę funkcję, użyj -no-external-csv
+
+
+
+                     * * *  Zdalna kontrola  * * *
+
+Argument -remote wskazuje URL, który będzie sprawdzany co 90 sekund. Jeśli znajdzie
+się tam niepusty plik, jego zawartość zostanie bezpośrednio zapisana w pliku
+dla sdrtst. W tym czasie freq_cycler nie wykonuje swoich normalnych cyklów. Ważność
+pliku wygasa po 60 minutach.
+W pliku zdalnej kontroli mogą znaleść się dwie specjalne linie. Pierwsza to np. 
+"#E:1562511131" i zawiera czas utworzenia pliku (jako czas UNIX), od którego jest
+liczona ważność pliku. Drugi typ to np. "#G:52.1,17.4,150", który ogranicza
+geograficzny zasięg pliku zdalnej kontroli do 150km promienia od współrzędnych
+52.1 017.4.
 
 
 
