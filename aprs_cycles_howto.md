@@ -1,5 +1,15 @@
 ## Setting up your station to receive both radiosondes and APRS on 432.500 ##
 
+### Introduction ###
+A typical radiosonde station has all the hardware ready to receive APRS on 432,500MHz.
+Of course, if you have SAW filter for 400MHz this will make it unusable for 433 band, but normally
+the hardware is ready to go. All we need is some extra software.
+
+The idea is to share receiver time between sondes and APRS frequency. Normally, this is about 50/50 share, but
+if activity on APRS is detected, freq_cycler will extend timefor that. On the other hand, sondes during landing
+are still prioritized and get exclusive Rx time. These times are adjustable in the config file.
+
+### How to make this work ###
 1. Firstly, you need a software APRS decoder. My choice is direwolf. It is available in Raspbian
 as a binary package, so just run:
    ```
