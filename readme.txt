@@ -134,7 +134,7 @@ named pipe, which will be read by software modem. This stream is raw
 single-channel (mono) during APRS cycle.
 Script monitors APRS log and if something is received, longer APRS cycles
 may be used.
-Szczegółowe informacje są w pliku konfiguracyjnym.
+Instrukcja instalacji jest w pliku aprs_cycles_howto_pl.md.
 
 
 
