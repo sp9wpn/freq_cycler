@@ -141,7 +141,7 @@ nazwaną kolejkę (FIFO), która z kolei będzie odbierana przez modem. W czasie
 cyklu APRS jest to surowy, jednokanałowy (mono) strumień.
 Skrypt monitoruje log APRS i jeśli cokolwiek zostanie odebrane, mogą być
 ustawione dłuższe cykle APRS.
-Ustawienia znajdują się w pliku konfiguracyjnym.
+Instrukcja instalacji jest w pliku aprs_cycles_howto_pl.md
 
 
 
