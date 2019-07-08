@@ -1,5 +1,15 @@
 ## Jak ustawić stację, by odbierała zarówno sondy, jak i APRS na 432.500 ##
+### Wprowadzenie ###
+Typowy odbiornik radiosond ma wszystko co potrzeba, by odbierać również APRS na 432,500MHz.
+Oczywiście jeśli zastosowano filtr SAW na 400MHz, to stacja będzie bezużyteczna na paśmie 433, ale
+normalnie cały sprzęt jest gotowy. Potrzeba tylko trochę oprogramowania.
 
+Pomysł polega na podziale czasu pracy odbiornika pomiędzy sondy i częstotliwość APRS. Normalnie jest to podział mniej więcej
+pół na pół, ale jeśli zostanie wykryta aktywność na APRS, freq_cycler wydłuży czasy jego odbioru. I odwrotnie, sondy
+w trakcie lądowania otrzymują odbiornik na wyłączność. Wszystkie te czasy można ustawiać w pliku
+konfiguracyjnym.
+
+### Jak to poustawiać ###
 1. Na początku potrzebujesz programowego dekodera APRS. Ja polecam direwolf. Jest dostępny w Raspbianie jako
 pakiet, więc wystarczy uruchomić:
    ```
