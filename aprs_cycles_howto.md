@@ -31,9 +31,11 @@ home directory (eg. /home/pi/direwolf.conf)
    ```
 
 3. Create a named pipe (FIFO):
+
    `$ mkfifo /home/pi/direwolf.fifo`
 
-4. Compile the stream copy program from freq_cycler suite:
+4. Compile the stream filter program from freq_cycler suite:
+
    `$ gcc aprs_stream_copy.c -o aprs_stream_copy`
 
 5. Restart sondeudp with additional parameter `-D /home/pi/direwolf.fifo`.
@@ -44,7 +46,7 @@ home directory (eg. /home/pi/direwolf.conf)
    `$ freq_cycler/aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | \
    direwolf -c /home/pi/direwolf.conf -L /var/log/direwolf/direwolf.log -r 24000 -qhd -t 0`
 
-   Make sure "24000" is the same as in sdrtst and sondeudp
+   Make sure that audio sampling (here: 24000) is the same as in sdrtst and sondeudp.
 
 7. Adjust parameters in `[aprs_cycles]` section config.cfg to your liking.
 
