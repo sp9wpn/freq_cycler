@@ -53,8 +53,10 @@ home directory (eg. /home/pi/direwolf.conf)
 
 6. Start direwolf via helper program:
 
-   `$ freq_cycler/aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | \
-   direwolf -c /home/pi/direwolf.conf -L /var/log/direwolf/direwolf.log -r 24000 -qhd -t 0`
+   ```
+   $ freq_cycler/aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | \
+   direwolf -c /home/pi/direwolf.conf -L /var/log/direwolf/direwolf.log -r 24000 -qhd -t 0
+   ```
 
    Make sure that audio sampling (here: 24000) is the same as in sdrtst and sondeudp.
 
