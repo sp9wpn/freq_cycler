@@ -36,32 +36,36 @@ prosty. Zapisz go jako direwolf.conf w katalogu domowym (np. /home/pi/direwolf.c
 
    IGSERVER euro.aprs2.net
    IGLOGIN N0CALL 00000
-
-   IGFILTER m/10
    ```
-
-3. Stwórz potok (FIFO):
+  
+3. Przygotuj katalog na logi direwolfa:
+   ```
+   sudo mkdir -p /var/log/direwolf
+   sudo chmod 777 /var/log/direwolf
+   ```
+   
+4. Stwórz potok (FIFO):
 
    `$ mkfifo /home/pi/direwolf.fifo`
 
-4. Skompiluj programik do filtrowania potoku dołączony do freq_cycler:
+5. Skompiluj programik do filtrowania potoku dołączony do freq_cycler:
 
    `$ gcc aprs_stream_copy.c -o aprs_stream_copy`
 
-5. Zrestartuj sondeudp z dodatkowym parametrem `-D /home/pi/direwolf.fifo`.
+6. Zrestartuj sondeudp z dodatkowym parametrem `-D /home/pi/direwolf.fifo`.
    Pamiętaj, że sondeudp **_zawiesi się_** dopóki inny proces nie zacznie czytać potoku!
 
-6. Uruchom direwolfa z filtrem do potoku:
+7. Uruchom direwolfa z filtrem do potoku:
 
    ```
    $ freq_cycler/aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | \
-   direwolf -c /home/pi/direwolf.conf -L /var/log/direwolf/direwolf.log -r 24000 -qhd -t 0
+   direwolf -c /home/pi/direwolf.conf -l /var/log/direwolf -r 24000 -qhd -t 0
    ```
 
    Upewnij się, że częstotliwość próbkowania (tutaj 24000) jest taka sama jak w sdrtst oraz sondeudp.
 
-7. W sekcji `[aprs_cycles]` config_pl.cfg ustaw parametry według swojego upodobania.
+8. W sekcji `[aprs_cycles]` config_pl.cfg ustaw parametry według swojego upodobania.
 
-8. Zrestartuj  freq_cycler.py z dodatkowym argumentem `-aprsscan`.
+9. Zrestartuj  freq_cycler.py z dodatkowym argumentem `-aprsscan`.
 
-9. Do normalnej pracy, nanieś powyższe zmiany do skryptu startowego.
+10. Do normalnej pracy, nanieś powyższe zmiany do skryptu startowego.
