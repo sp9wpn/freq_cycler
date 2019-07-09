@@ -36,32 +36,36 @@ home directory (eg. /home/pi/direwolf.conf)
 
    IGSERVER euro.aprs2.net
    IGLOGIN N0CALL 00000
-
-   IGFILTER m/10
    ```
 
-3. Create a named pipe (FIFO):
+3. Create a directory for direwolf logs:
+   ```
+   sudo mkdir -p /var/log/direwolf
+   sudo chmod 777 /var/log/direwolf
+   ```
+   
+4. Create a named pipe (FIFO):
 
    `$ mkfifo /home/pi/direwolf.fifo`
 
-4. Compile the stream filter program from freq_cycler suite:
+5. Compile the stream filter program from freq_cycler suite:
 
    `$ gcc aprs_stream_copy.c -o aprs_stream_copy`
 
-5. Restart sondeudp with additional parameter `-D /home/pi/direwolf.fifo`.
+6. Restart sondeudp with additional parameter `-D /home/pi/direwolf.fifo`.
    Please mind that sondeudp will **_freeze_** until another process reads from the pipe!
 
-6. Start direwolf via helper program:
+7. Start direwolf via helper program:
 
    ```
    $ freq_cycler/aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | \
-   direwolf -c /home/pi/direwolf.conf -L /var/log/direwolf/direwolf.log -r 24000 -qhd -t 0
+   direwolf -c /home/pi/direwolf.conf -l /var/log/direwolf -r 24000 -qhd -t 0
    ```
 
    Make sure that audio sampling (here: 24000) is the same as in sdrtst and sondeudp.
 
-7. Adjust parameters in `[aprs_cycles]` section config.cfg to your liking.
+8. Adjust parameters in `[aprs_cycles]` section config.cfg to your liking.
 
-8. Restart freq_cycler.py with extra `-aprsscan` argument.
+9. Restart freq_cycler.py with extra `-aprsscan` argument.
 
-9. For normal operation, incorporate above changes to your startup script.
+10. For normal operation, incorporate above changes to your startup script.
