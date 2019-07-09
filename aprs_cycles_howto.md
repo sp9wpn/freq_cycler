@@ -40,8 +40,8 @@ home directory (eg. /home/pi/direwolf.conf)
 
 3. Create a directory for direwolf logs:
    ```
-   sudo mkdir -p /var/log/direwolf
-   sudo chmod 777 /var/log/direwolf
+   $ sudo mkdir -p /var/log/direwolf
+   $ sudo chmod 777 /var/log/direwolf
    ```
    
 4. Create a named pipe (FIFO):
