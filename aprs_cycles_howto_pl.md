@@ -40,8 +40,8 @@ prosty. Zapisz go jako direwolf.conf w katalogu domowym (np. /home/pi/direwolf.c
   
 3. Przygotuj katalog na logi direwolfa:
    ```
-   sudo mkdir -p /var/log/direwolf
-   sudo chmod 777 /var/log/direwolf
+   $ sudo mkdir -p /var/log/direwolf
+   $ sudo chmod 777 /var/log/direwolf
    ```
    
 4. Stwórz potok (FIFO):
