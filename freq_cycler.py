@@ -71,7 +71,7 @@ if not os.path.isfile(args.config):
   sys.exit()
 
 try:
-  config = ConfigParser.ConfigParser()   
+  config = ConfigParser.SafeConfigParser()   
   config.read(args.config)
 
 except:
