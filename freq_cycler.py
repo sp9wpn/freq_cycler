@@ -187,7 +187,7 @@ def thread_read_APRS(ip,port):
 
 
 def init(z1,z2):
-  global config,freq_range,qth,aprs_last_cycle,aprs_interval
+  global config,freq_range,qth,aprs_last_cycle,aprs_interval,sdrtst_templates
 
   if not os.path.isfile(args.config):
     print "ERROR: config file not found: " + args.config
@@ -211,12 +211,29 @@ def init(z1,z2):
     print "ERROR: need definitions for sonde types in config file"
     sys.exit()
 
+  sdrtst_templates={}
+  for t,t_name in dict(sonde_types).iteritems():
+    temp = set()
+    section_items = config.items(t_name)
+    for key,val in section_items:
+      if key[:14].lower() == 'sdrtsttemplate':
+        temp.add(' '.join(val.strip('"').split()))
+
+    if len(temp) > 0:
+      sdrtst_templates[t] = temp
+    else:
+      print "ERROR: no SdrtstTemplate defined for %s, ignoring this type" % t_name
+      time.sleep(1)
+      sonde_types.pop(t)
+
+
   if args.f:
     freq_range = (args.f[0],args.f[1])
   else:
     freq_range = (400000,406000)				# default
 
   qth=(config.getfloat('main','QTHlat'),config.getfloat('main','QTHlon'))
+
 
   aprs_last_cycle = time.time()
   try:
@@ -244,6 +261,13 @@ def set_blind_channels():
     blind_channels = 0
 
 
+def count_sel_freqs(f):
+  have=0
+  for (freq, type) in f:
+    have += len(sdrtst_templates[type])
+
+  return have
+
 
 def add_freqs(flist,landing = False):
   global channels,blind_channels
@@ -251,11 +275,13 @@ def add_freqs(flist,landing = False):
   channels = max(1,channels)
 
   for f in flist:
-    if len(selected_freqs) >= channels:
+    have_channels = count_sel_freqs(selected_freqs)
+
+    if have_channels >= channels:
       break
 
     if (     not landing
-         and len(selected_freqs) >= channels-blind_channels+1
+         and have_channels >= channels-blind_channels+1
          and f[2] != 0 ):
       continue
 
@@ -265,7 +291,7 @@ def add_freqs(flist,landing = False):
     if f[0] < freq_range[0] or f[0] > freq_range[1]:
       continue
 
-    if len(selected_freqs) > 0:
+    if have_channels > 0:
       if (    f[0] - args.bw >= min([t[0] for t in selected_freqs])
            or f[0] + args.bw <= max([t[0] for t in selected_freqs]) ):
         continue
@@ -324,8 +350,10 @@ def write_sdrtst_config(freqs):
     if f[1] not in sonde_types:
       continue
 
-    tmp.write("f %.3f" % (int(f[0])/1000.0))
-    tmp.write(" "+' '.join(config.get(sonde_types[f[1]],'SdrtstTemplate').strip('"').split())+"\n")
+    for template in sdrtst_templates[f[1]]:
+      tmp.write("f %.3f" % (int(f[0])/1000.0))
+      tmp.write(" "+template+"\n")
+
     new_freqs.add((f[0],f[1]))
 
   os.umask (oldmask)
