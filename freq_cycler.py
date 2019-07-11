@@ -346,7 +346,6 @@ def write_sdrtst_config(freqs):
 
   new_freqs = set()
 
-  debug_count = 0
   for f in sorted(freqs):
     if f[1] not in sonde_types:
       continue
@@ -354,7 +353,6 @@ def write_sdrtst_config(freqs):
     for template in sdrtst_templates[f[1]]:
       tmp.write("f %.3f" % (int(f[0])/1000.0))
       tmp.write(" "+template+"\n")
-      debug_count += 1
 
     new_freqs.add((f[0],f[1]))
 
@@ -401,8 +399,6 @@ def write_sdrtst_config(freqs):
         txt += 'm'
       else:
         txt += ' '
-
-    txt += " ==  %d freqs, %d lines" % (len(freqs),debug_count)
 
     print txt
 
