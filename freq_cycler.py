@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.8 (11.07.2019)
+# v1.9 (12.07.2019)
 # BSD licence
 
 import os
@@ -648,6 +648,24 @@ def auto_channels():
 
 
 
+def vicinity_freqs(freqs):
+  vicinity=[]
+
+  for x in freqs:
+    vicinity += dbc.execute("""SELECT DISTINCT freq, type, status, ABS(freq-?) AS delta
+		FROM freqs
+		WHERE landing_mode IS NULL
+			AND type = ?
+			AND freq >= ?
+			AND freq <= ?
+			AND status > 0
+			AND (	status_expire IS NULL
+				OR status_expire >= datetime('now') )
+		ORDER BY status DESC, delta, random()""",(x[0],x[1],freq_range[0],freq_range[1])).fetchall()
+
+  return sorted(vicinity, key=lambda kk: kk[3])
+
+
 
 def graceful_exit(z1,z2):
   exit_script.set()
@@ -706,6 +724,7 @@ landing_freqs=set()
 selected_freqs=set()
 
 base_freq = 0
+landing_lock = False
 
 # connect / create database
 try:
@@ -924,6 +943,7 @@ while not exit_script.is_set():
             if ( dbc.rowcount > 0
                  and not args.q ):
               print ("Sonde landing detected: " + d[0] + " (%.3f)" % (d[1]/1000.0))
+              aprs_last_cycle = int(time.time() + config.getint('main','CycleInterval') + 1)
         except:
           print "ERROR when checking for landing:"
           print d
@@ -944,7 +964,7 @@ while not exit_script.is_set():
 
 
   # APRS cycle
-  if args.aprsscan and config.has_option('aprs_cycles','AprsCycle') and config.has_option('aprs_cycles','AprsInterval'):
+  if not landing_lock and args.aprsscan and config.has_option('aprs_cycles','AprsCycle') and config.has_option('aprs_cycles','AprsInterval'):
     try:
 
       if aprs_last_cycle + aprs_interval < time.time():
@@ -981,6 +1001,7 @@ while not exit_script.is_set():
   if exit_script.is_set():
     break;
 
+
   if config.has_option('auto_channels','Sensor'):
     auto_channels()
 
@@ -997,6 +1018,7 @@ while not exit_script.is_set():
 				OR status_expire >= datetime('now') )
 		ORDER BY status DESC, distance ASC""",(freq_range[0],freq_range[1],args.output)).fetchall()
 
+
   freq_list=dbc.execute("""SELECT DISTINCT freq, type, status
 		FROM freqs
 		WHERE landing_mode IS NULL
@@ -1008,18 +1030,25 @@ while not exit_script.is_set():
 
 
   if len(landing_freqs) > 0:
+    aprs_last_cycle = time.time() + config.getint('main','CycleInterval')
+
     if [[x[0],x[1]] for x in landing_freqs] != [[x[0],x[1]] for x in old_landing_freqs]:
+
       old_selected_freqs=selected_freqs
       selected_freqs=set()
       landing_lock = False
+      blind_channels = 0
+
       add_freqs(landing_freqs,True)
       mark_landing_mode(selected_freqs)
+      add_freqs(vicinity_freqs(selected_freqs))
       add_freqs(freq_list)
 
     else:
       landing_lock = True
 
   else:
+    set_blind_channels()
     old_selected_freqs=selected_freqs
     selected_freqs=set()
     landing_lock = False
@@ -1063,10 +1092,11 @@ while not exit_script.is_set():
 
   mark_freqs_checked(selected_freqs)
 
+  exit_script.wait(config.getint('main','CycleInterval'))
+
 
   # rinse and repeat
   verbose("")
-  exit_script.wait(config.getint('main','CycleInterval'))
 
 
 # graceful exit
