@@ -48,7 +48,7 @@ home directory (eg. /home/pi/direwolf.conf)
 
    `$ mkfifo /home/pi/direwolf.fifo`
    
-   Remember this has to be done **_before_** starting sondeudp with `-D` argument (see par. 6)
+   Remember this has to be done **_before_** starting sondeudp with `-D` parameter (see par. 6)
 
 5. Compile the stream filter program from freq_cycler suite:
 
