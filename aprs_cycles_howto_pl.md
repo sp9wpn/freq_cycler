@@ -47,6 +47,8 @@ prosty. Zapisz go jako direwolf.conf w katalogu domowym (np. /home/pi/direwolf.c
 4. Stwórz potok (FIFO):
 
    `$ mkfifo /home/pi/direwolf.fifo`
+   
+   Pamiętaj, żeby utworzyć potok **_zanim_** uruchomisz sondeudp z parametrem `-D` (zob. pkt 6)
 
 5. Skompiluj programik do filtrowania potoku dołączony do freq_cycler:
 
