@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.9 (12.07.2019)
+# v1.9.1 (13.07.2019)
 # BSD licence
 
 import os
@@ -463,14 +463,16 @@ def sonde_type_from_serial(s):
       return 0					# DFM (standard)
     else:
       return 2					# M10
+  elif s[0:2] == 'ME':
+    return 2					# M10
   elif s[0:1] == 'P' and not s[1:2].isdigit():
     return 1					# pilotSonde
   elif s[0:1] == 'B' and not s[1:2].isdigit():
     return 1					# pilotSonde
   elif s[0:1] == 'G' and not s[1:2].isdigit():
     return 1					# pilotSonde
-  elif s[0:3] == 'DFM':
-    return 0					# DFM
+  elif s[0:2] == 'DF':
+    return 0					# DFM (standard)
   else:
     return 0					# standard
 
@@ -528,7 +530,7 @@ def read_csv(file,external = False):
         q.put((r[0],qrg,sonde_type,2,int(r[3]),status_expire,distance,vs))
       else:
         q.put((r[0],qrg,sonde_type,3,int(r[3]),status_expire,distance,vs))
-      verbose(" ..  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (r[0], float(r[1]), float(r[2]), int(r[3]), vs, qrg/1000.0 ))
+      verbose(" ..%1d  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (sonde_type, r[0], float(r[1]), float(r[2]), int(r[3]), vs, qrg/1000.0 ))
 
     except:
       continue
