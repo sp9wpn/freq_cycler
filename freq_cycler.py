@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.9.1 (13.07.2019)
+# v1.9.3 (23.08.2019)
 # BSD licence
 
 import os
@@ -76,6 +76,11 @@ try:
 
 except:
   print "ERROR: error reading config file: " + args.config
+  sys.exit()
+
+
+if not os.access(args.output, os.W_OK):
+  print "ERROR: access denied to output file: " + args.output
   sys.exit()
 
 
@@ -362,7 +367,7 @@ def write_sdrtst_config(freqs):
   try:
     os.rename(args.output+'.tmp',args.output)
   except:
-    print "ERROR: error writing file: " + args.output + ".tmp"
+    print "ERROR: error writing file: " + args.output
     return 0
 
 
@@ -434,7 +439,7 @@ def write_sdrtst_config_aprs():
   try:
     os.rename(args.output+'.tmp',args.output)
   except:
-    print "ERROR: error writing file: " + args.output + ".tmp"
+    print "ERROR: error writing file: " + args.output
     return 0
 
 
@@ -870,7 +875,7 @@ while not exit_script.is_set():
 
         print "Using remote config " + args.remote
       except:
-        print "ERROR: error writing file: " + args.output + ".tmp"
+        print "ERROR: error writing file: " + args.output
         raise
 
       exit_script.wait(90)
@@ -985,7 +990,7 @@ while not exit_script.is_set():
         if last_aprs_log_update() + 600 > time.time():
           verbose("APRS 70cm is active, extending APRS cycle")
           aprs_interval=config.getint('aprs_cycles','ActiveAprsInterval')
-          exit_script.wait(config.getint('aprs_cycles','ActiveAprsCycle') - config.getint('aprs_cycles','AprsCycle'))
+          exit_script.wait(max(0,config.getint('aprs_cycles','ActiveAprsCycle') - config.getint('aprs_cycles','AprsCycle')))
         else:
           aprs_interval=config.getint('aprs_cycles','AprsInterval')
 
