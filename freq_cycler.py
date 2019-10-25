@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.9.3 (23.08.2019)
+# v1.9.4 (25.10.2019)
 # BSD licence
 
 import os
@@ -79,7 +79,7 @@ except:
   sys.exit()
 
 
-if not os.access(args.output, os.W_OK):
+if os.access (args.output, os.F_OK) and not os.access(args.output, os.W_OK):
   print "ERROR: access denied to output file: " + args.output
   sys.exit()
 
