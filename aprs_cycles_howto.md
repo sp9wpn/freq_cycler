@@ -70,4 +70,4 @@ home directory (eg. /home/pi/direwolf.conf)
 
 9. Restart freq_cycler.py with extra `-aprsscan` argument.
 
-10. For normal operation, incorporate changes above to your startup script.
+10. For normal operation, incorporate actions and changes from steps 3, 4, 6, 7, 9 above into your startup script.
