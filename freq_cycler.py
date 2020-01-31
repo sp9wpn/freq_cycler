@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.9.4 (25.10.2019)
+# v1.9.5 (31.01.2020)
 # BSD licence
 
 import os
@@ -609,9 +609,12 @@ def last_aprs_log_update():
     if os.path.isdir(aprslog):
       lastupdate=0
       for file in os.listdir(aprslog):
-        lastupdate=max(lastupdate,os.path.getmtime(aprslog+"/"+file))
-    elif os.path.isfile(aprslog):
+        if os.path.getsize(aprslog+"/"+file) > 0:
+          lastupdate=max(lastupdate,os.path.getmtime(aprslog+"/"+file))
+    elif os.path.isfile(aprslog) and os.path.getsize(aprslog) > 0:
       lastupdate=os.path.getmtime(aprslog)
+    else:
+      lastupdate=0
 
     return int(lastupdate)
   except:
