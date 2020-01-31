@@ -70,4 +70,4 @@ prosty. Zapisz go jako direwolf.conf w katalogu domowym (np. /home/pi/direwolf.c
 
 9. Zrestartuj  freq_cycler.py z dodatkowym argumentem `-aprsscan`.
 
-10. Do normalnej pracy, nanieś powyższe zmiany do skryptu startowego.
+10. Do normalnej pracy, umieść zmiany i operacje z kroków 3, 4, 6, 7, 9 w skrypcie startowym.
