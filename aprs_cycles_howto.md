@@ -57,11 +57,10 @@ home directory (eg. /home/pi/direwolf.conf)
 6. Restart sondeudp with additional parameter `-D /home/pi/direwolf.fifo`.
    Please mind that sondeudp will **_freeze_** until another process reads from the pipe!
 
-7. Start direwolf via helper program:
+7. Start direwolf via helper program (this is one long line):
 
    ```
-   $ freq_cycler/aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | \
-   direwolf -c /home/pi/direwolf.conf -l /var/log/direwolf -r 24000 -qhd -t 0
+   $ ./aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | direwolf -c /home/pi/direwolf.conf -l /var/log/direwolf -r 24000 -qhd -t 0
    ```
 
    Make sure that audio sampling (here: 24000) is the same as in sdrtst and sondeudp.
