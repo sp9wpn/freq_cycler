@@ -57,11 +57,10 @@ prosty. Zapisz go jako direwolf.conf w katalogu domowym (np. /home/pi/direwolf.c
 6. Zrestartuj sondeudp z dodatkowym parametrem `-D /home/pi/direwolf.fifo`.
    Pamiętaj, że sondeudp **_zawiesi się_** dopóki inny proces nie zacznie czytać potoku!
 
-7. Uruchom direwolfa z filtrem do potoku:
+7. Uruchom direwolfa z filtrem do potoku (jedna długa linia):
 
    ```
-   $ freq_cycler/aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | \
-   direwolf -c /home/pi/direwolf.conf -l /var/log/direwolf -r 24000 -qhd -t 0
+   $ ./aprs_stream_copy /tmp/freq_cycler_aprs_cycle.tmp /home/pi/direwolf.fifo - | direwolf -c /home/pi/direwolf.conf -l /var/log/direwolf -r 24000 -qhd -t 0
    ```
 
    Upewnij się, że częstotliwość próbkowania (tutaj 24000) jest taka sama jak w sdrtst oraz sondeudp.
