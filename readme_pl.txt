@@ -130,7 +130,7 @@ oraz HighTemp (wysoka).
 
 
 
-                     * * *  Skanowanie APRS * * *
+                     * * *  Skanowanie APRS  * * *
 
 Ta funkcja pozwala Twojej stacji odbieranie zarówno sond, jak i APRS 70cm.
 Pojawiają się dodatkowe "cykle APRS", w czasie których SDR jest ustawiany do
@@ -142,6 +142,18 @@ cyklu APRS jest to surowy, jednokanałowy (mono) strumień.
 Skrypt monitoruje log APRS i jeśli cokolwiek zostanie odebrane, mogą być
 ustawione dłuższe cykle APRS.
 Instrukcja instalacji jest w pliku aprs_cycles_howto_pl.md
+
+
+
+                     * * *  Czyszczenie buforów sondeudp  * * *
+
+Kiedy ilość kanałów odbiorczych się zmniejsza, dane z usuniętych kanałach
+pozostają w buforach sondeudp do czasu, kiedy ten kanał ponownie zacznie
+odbierać dane. Może to powodować dekodowanie ramek dużo później niż kiedy
+zostały odebrane i zaburzenie ich kolejności.
+Aby ominąć problem, za każdym razem gdy spada ilość używanych kanałów,
+freq_cycler dodaje krótki (1,3 sekundy) "cykl czyszczący" używając
+częstotliwości spoza zakresu sond.
 
 
 

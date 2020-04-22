@@ -115,16 +115,16 @@ Script running as slave ignores -csv, -udplog and -aprslog arguments.
 
                      * * *  Auto-channels  * * *
 
-This experimental feature sets number of available channels according to core
-temperature for Raspberry Pi. The "Sensor" defines source of data. If it is an
-executable (like /opt/vc/bin/vcgencmd measure_temp), it is launched and
-temperature is read from output. Ordinary files (like
-/sys/class/thermal/thermal_zone0/temp) are read directly. Number of channels is
-adjusted proportionally between defined LowTemp and HighTemp.
+This feature sets number of available channels according to core temperature
+for Raspberry Pi. The "Sensor" defines source of data. If it is an executable
+(like /opt/vc/bin/vcgencmd measure_temp), it is launched and temperature is
+read from output. Ordinary files (like /sys/class/thermal/thermal_zone0/temp)
+are read directly. Number of channels is adjusted proportionally between
+defined LowTemp and HighTemp.
 
 
 
-                     * * *  APRS scanning * * *
+                     * * *  APRS scanning  * * *
 
 This feature allows your station to work both sondes and APRS 70cm. Extra
 "APRS cycles" will be introduced which tune SDR to 432.500 frequency. You have
@@ -135,6 +135,16 @@ single-channel (mono) during APRS cycle.
 Script monitors APRS log and if something is received, longer APRS cycles
 may be used.
 Installation howto is in the aprs_cycles_howto.md file.
+
+
+
+                     * * *  Sondeudp buffers flushing  * * *
+
+When number of channels is reduced, data in dropped ones will be held in sondeudp
+buffer until this channel is populated again. This may cause "out of order" frames
+being decoded much later than they were received.
+To mitigate this, each time number of channels decreases, freq_cycler adds a
+short (1.3 second) "flush cycle" using frequency outside sonde band.
 
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.9.5 (31.01.2020)
+# v1.10.0 (22.04.2020)
 # BSD licence
 
 import os
@@ -285,6 +285,10 @@ def add_freqs(flist,landing = False):
     if have_channels >= channels:
       break
 
+    # no free channels for all templates
+    if have_channels + len(sdrtst_templates[f[1]]) > channels:
+      continue
+
     if (     not landing
          and have_channels >= channels-blind_channels+1
          and f[2] != 0 ):
@@ -327,7 +331,40 @@ def mark_landing_mode(freqs):
   db.commit()
 
 
+
+def flush_sdrtst_buffers(n):
+  if n < 1:
+    return 0
+
+  oldmask = os.umask (000)
+  try:
+    tmp=open(args.output+'.tmp','w')
+
+  except:
+    os.umask (oldmask)
+    print "ERROR: error writing tmp file: " + args.output + ".tmp"
+    return 0
+
+  for f in range (0, n):
+    tmp.write("f 511.111 0 1 1\n")
+
+  os.umask (oldmask)
+  tmp.close()
+
+  try:
+    os.rename(args.output+'.tmp',args.output)
+  except:
+    print "ERROR: error writing file: " + args.output
+    return 0
+
+  time.sleep(1.3)
+
+
+
 def write_sdrtst_config(freqs):
+  if count_sel_freqs(freqs) < count_sel_freqs(old_selected_freqs):
+    flush_sdrtst_buffers(count_sel_freqs(old_selected_freqs))
+
   oldmask = os.umask (000)
   try:
     tmp=open(args.output+'.tmp','w')
@@ -410,6 +447,8 @@ def write_sdrtst_config(freqs):
 
 
 def write_sdrtst_config_aprs():
+  flush_sdrtst_buffers(count_sel_freqs(selected_freqs))
+
   oldmask = os.umask (000)
   try:
     tmp=open(args.output+'.tmp','w')
@@ -644,9 +683,11 @@ def auto_channels():
       new_channels = config.getint('auto_channels','MinChannels')
     else:
       new_channels = ( config.getint('auto_channels','MaxChannels')
-                       - ( temp - config.getint('auto_channels','LowTemp') )
-                       / (   ( config.getint('auto_channels','HighTemp')-config.getint('auto_channels','LowTemp') )
-                           / ( config.getint('auto_channels','MaxChannels')-config.getint('auto_channels','MinChannels') ) ) )
+              - ( temp - config.getint('auto_channels','LowTemp') )
+              / (   ( config.getint('auto_channels','HighTemp')-float(config.getint('auto_channels','LowTemp')) )
+                / ( config.getint('auto_channels','MaxChannels')-config.getint('auto_channels','MinChannels') ) ) )
+
+      new_channels = round(new_channels)
    
     if new_channels != channels:
       verbose("auto_channels: temp=%d'C, adjusting channels to %d" % (temp, new_channels))
@@ -732,6 +773,7 @@ set_blind_channels()
 
 landing_freqs=set()
 selected_freqs=set()
+old_selected_freqs=set()
 
 base_freq = 0
 landing_lock = False
@@ -866,6 +908,9 @@ while not exit_script.is_set():
         verbose("No valid lines in remote config")
         continue						# restart main loop
 
+      flush_sdrtst_buffers(count_sel_freqs(selected_freqs))
+      selected_freqs=set()
+      old_selected_freqs=set()
 
       # write sdrtst config file
       try:
@@ -986,6 +1031,8 @@ while not exit_script.is_set():
           open(config.get('aprs_cycles','AprsFlagFile'), 'a').close()
 
         write_sdrtst_config_aprs()
+
+        old_selected_freqs=set()
 
         exit_script.wait(config.getint('aprs_cycles','AprsCycle'))
 
