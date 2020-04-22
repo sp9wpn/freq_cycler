@@ -147,8 +147,8 @@ Instrukcja instalacji jest w pliku aprs_cycles_howto_pl.md
 
                      * * *  Czyszczenie buforów sondeudp  * * *
 
-Kiedy ilość kanałów odbiorczych się zmniejsza, dane z usuniętych kanałach
-pozostają w buforach sondeudp do czasu, kiedy ten kanał ponownie zacznie
+Kiedy ilość kanałów odbiorczych się zmniejsza, dane z usuniętych kanałów
+pozostają w buforach sondeudp do czasu, kiedy dany kanał ponownie zacznie
 odbierać dane. Może to powodować dekodowanie ramek dużo później niż kiedy
 zostały odebrane i zaburzenie ich kolejności.
 Aby ominąć problem, za każdym razem gdy spada ilość używanych kanałów,
