@@ -1,7 +1,7 @@
 #!/usr/bin/python2 -u
 
 # by Wojtek SP9WPN
-# v1.10.0 (22.04.2020)
+# v1.10.1 (26.04.2020)
 # BSD licence
 
 import os
@@ -51,6 +51,7 @@ argparser.add_argument('-c', metavar='<num>', help='RTL max open channels (defau
 argparser.add_argument('-bc', metavar='<num|percent%>', help='channels reserved for blind-scanning (default: 25%% of max channels')
 argparser.add_argument('-no-blind', action='store_true', help='disable blind-scanning')
 argparser.add_argument('-f', metavar='<kHz>', nargs=2, type=int, help='frequency range (for multi-SDR operation, default 400000 406000)')
+argparser.add_argument('-bflush', action='store_true', help='enable buffer flush cycles, see readme')
 argparser.add_argument('-ppm', metavar='<ppm>', type=int, help='RTL PPM correction')
 argparser.add_argument('-agc', metavar='<0|1>', help='RTL AGC switch (default: 1 - enabled)', choices=('0','1'), default=1)
 argparser.add_argument('-gain', metavar='<gain|auto>', help='RTL gain setting')
@@ -333,7 +334,7 @@ def mark_landing_mode(freqs):
 
 
 def flush_sdrtst_buffers(n):
-  if n < 1:
+  if n < 1 or not args.bflush:
     return 0
 
   oldmask = os.umask (000)

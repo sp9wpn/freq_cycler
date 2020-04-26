@@ -41,6 +41,7 @@ optional arguments:
   -no-blind           disable blind-scanning
   -f <kHz> <kHz>      frequency range (for multi-SDR operation, default 400000
                       406000)
+  -bflush             enable buffer flush cycles
   -ppm <ppm>          RTL PPM correction
   -agc <0|1>          RTL AGC switch (default: 1 - enabled)
   -gain <gain|auto>   tuner gain setting
@@ -138,13 +139,15 @@ Installation howto is in the aprs_cycles_howto.md file.
 
 
 
-                     * * *  Sondeudp buffers flushing  * * *
+                     * * *  Sondeudp buffers flushing cycles  * * *
 
 When number of channels is reduced, data in dropped ones will be held in sondeudp
 buffer until this channel is populated again. This may cause "out of order" frames
 being decoded much later than they were received.
 To mitigate this, each time number of channels decreases, freq_cycler adds a
 short (1.3 second) "flush cycle" using frequency outside sonde band.
+The bug was corrected in spdxl 22.04.2020, so this feature is recommended for
+dxlAPRS or older spdxl installs.
 
 
 

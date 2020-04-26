@@ -20,7 +20,7 @@ według potrzeb.
 Użycie: freq_cycler.py [-h] [-csv <url> | -no-external-csv] [-udplog <plik>]
                        [-aprslog <IP:port>] [-remote <url>] [-slave]
                        [-aprsscan] [-c <num>] [-bc <num|procent%>] [-no-blind]
-                       [-f <kHz> <kHz>] [-ppm <ppm>] [-agc <0|1>]
+                       [-f <kHz> <kHz>] [-bflush] [-ppm <ppm>] [-agc <0|1>]
                        [-gain <wzmoc|auto>] [-bw <kHz>] [-v | -q]
                        konfig wyjście
 
@@ -44,6 +44,7 @@ argumenty opcjonalne:
   -no-blind           wyłącz ślepe skanowanie
   -f <kHz> <kHz>      zakres częstotliwości (dla pracy z wieloma SDR, domyślnie
                       400000 406000)
+  -bflush             włącz cykle czyszczenia buforów (szczegóły poniżej)
   -ppm <ppm>          poprawka PPM dla RTL
   -agc <0|1>          przełącznik RTL AGC (domyślnie: 1 - włączony)
   -gain <wzmoc|auto>  ustawienie wzmocnienia odbiornika
@@ -145,15 +146,17 @@ Instrukcja instalacji jest w pliku aprs_cycles_howto_pl.md
 
 
 
-                     * * *  Czyszczenie buforów sondeudp  * * *
+                     * * *  Cykle czyszczenia buforów sondeudp  * * *
 
-Kiedy ilość kanałów odbiorczych się zmniejsza, dane z usuniętych kanałów
-pozostają w buforach sondeudp do czasu, kiedy dany kanał ponownie zacznie
-odbierać dane. Może to powodować dekodowanie ramek dużo później niż kiedy
-zostały odebrane i zaburzenie ich kolejności.
-Aby ominąć problem, za każdym razem gdy spada ilość używanych kanałów,
-freq_cycler dodaje krótki (1,3 sekundy) "cykl czyszczący" używając
-częstotliwości spoza zakresu sond.
+W starszych wersjach dxlAPRS i spdxl (przed 22.04.2020), kiedy ilość 
+kanałów odbiorczych się zmniejszała, dane z usuniętych kanałów
+pozostawały w buforach sondeudp do czasu, kiedy dany kanał ponownie zaczął
+odbierać dane. Powodowało to dekodowanie ramek dużo później względem
+rzeczywistego czasu odbioru i zaburzanie ich kolejności.
+
+Jeśli nie możesz zainstalować najnowszego dxlAPRS lub spdxl, użyj opcji -bflush
+która za każdym razem gdy ilość kanałów spada, doda krótki (1,3 sekundy) "cykl
+czyszczący" używając częstotliwości spoza zakresu sond.
 
 
 
