@@ -17,7 +17,7 @@ Please check the example config file (config.cfg) and edit as required.
 usage: freq_cycler.py [-h] [-csv <url> | -no-external-csv] [-udplog <file>]
                       [-aprslog <IP:port>] [-remote <url>] [-slave]
                       [-aprsscan] [-c <num>] [-bc <num|percent%>] [-no-blind]
-                      [-f <kHz> <kHz>] [-ppm <ppm>] [-agc <0|1>]
+                      [-f <kHz> <kHz>] [-bflush] [-ppm <ppm>] [-agc <0|1>]
                       [-gain <gain|auto>] [-bw <kHz>] [-v | -q]
                       config output
 
@@ -41,7 +41,7 @@ optional arguments:
   -no-blind           disable blind-scanning
   -f <kHz> <kHz>      frequency range (for multi-SDR operation, default 400000
                       406000)
-  -bflush             enable buffer flush cycles
+  -bflush             enable buffer flush cycles (see below)
   -ppm <ppm>          RTL PPM correction
   -agc <0|1>          RTL AGC switch (default: 1 - enabled)
   -gain <gain|auto>   tuner gain setting
@@ -141,13 +141,14 @@ Installation howto is in the aprs_cycles_howto.md file.
 
                      * * *  Sondeudp buffers flushing cycles  * * *
 
-When number of channels is reduced, data in dropped ones will be held in sondeudp
-buffer until this channel is populated again. This may cause "out of order" frames
-being decoded much later than they were received.
-To mitigate this, each time number of channels decreases, freq_cycler adds a
-short (1.3 second) "flush cycle" using frequency outside sonde band.
-The bug was corrected in spdxl 22.04.2020, so this feature is recommended for
-dxlAPRS or older spdxl installs.
+In older versions of dxlAPRS and spdxl (prior 22.04.2020), if number of
+channels became reduced, data in dropped ones were held in sondeudp buffer
+until this channel was populated again. This caused "out of order" frames being
+decoded much later than they were actually received.
+
+If you cannot upgrade to latest dxlAPRS or spdxl, use -bflush option, which
+will add add a short (1.3 second) "flush cycle" using frequency outside sonde
+band every time number of channels is reduced.
 
 
 
