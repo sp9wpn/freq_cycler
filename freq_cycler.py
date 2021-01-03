@@ -1,7 +1,7 @@
-#!/usr/bin/python2 -u
+#!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.10.1 (26.04.2020)
+# v1.11.0 (03.01.2021)
 # BSD licence
 
 import os
@@ -12,14 +12,24 @@ import socket
 import time
 import sqlite3
 import argparse
-import ConfigParser
+try:
+  import ConfigParser as configparser		#py2
+except ImportError:
+  import configparser				#py3
+try:
+  import Queue as queue				#py2
+except ImportError:
+  import queue					#py3
 import signal
-import urllib
+try:
+    from urllib.request import urlopen		#py3
+except ImportError:
+    from urllib2 import urlopen			#py2
 import csv
-import Queue
 import email.utils
 import datetime
 import calendar
+import codecs
 from math import sin, cos, sqrt, atan2, radians
 from threading import Thread
 from threading import Event
@@ -27,7 +37,7 @@ from threading import Event
 
 def verbose(t):
   if args.v:
-    print t
+    print(t)
 
 
 default_external_urls = [
@@ -68,20 +78,20 @@ args=argparser.parse_args()
 
 
 if not os.path.isfile(args.config):
-  print "ERROR: config file not found: " + args.config
+  print("ERROR: config file not found: " + args.config)
   sys.exit()
 
 try:
-  config = ConfigParser.SafeConfigParser()   
+  config = configparser.ConfigParser()   
   config.read(args.config)
 
 except:
-  print "ERROR: error reading config file: " + args.config
+  print("ERROR: error reading config file: " + args.config)
   sys.exit()
 
 
 if os.access (args.output, os.F_OK) and not os.access(args.output, os.W_OK):
-  print "ERROR: access denied to output file: " + args.output
+  print("ERROR: access denied to output file: " + args.output)
   sys.exit()
 
 
@@ -90,7 +100,7 @@ if config.has_option('main','Database') and config.get('main','Database'):
   verbose("using "+dbfile+" as database")
 else:
   if args.slave:
-    print "ERROR: -slave requires Database defined (check "+args.config+")"
+    print("ERROR: -slave requires Database defined (check "+args.config+")")
     sys.exit()
   dbfile = ":memory:"
 
@@ -112,7 +122,7 @@ sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM
 aprs_interval = 0
 remote_control_last_check = 0
 
-q = Queue.Queue()
+q = queue.Queue()
 exit_script = Event()
 
 
@@ -125,7 +135,7 @@ def thread_external_sondelist(url):
 def thread_read_udpgate_log(filename):
   while not exit_script.is_set():
     try:
-      file = open(filename,'r')
+      file = open(filename,'rb')
       file.seek(0,2)
 
       while not exit_script.is_set():
@@ -149,7 +159,7 @@ def thread_read_udpgate_log(filename):
     except:
       pass
 
-    print "ERROR: error accessing "+str(filename)+", trying to reopen in 20s"
+    print("ERROR: error accessing "+str(filename)+", trying to reopen in 20s")
     exit_script.wait(20)
 
 
@@ -168,22 +178,23 @@ def thread_read_APRS(ip,port):
         need_connect = False
 
         # APRS login
-        s.sendall("user N0CALL-0 -1 filter r/%.4f/%.4f/%d\n" %
+
+        s.sendall(("user N0CALL-0 -1 filter r/%.4f/%.4f/%d\n" %
                             ( config.getfloat('main','QTHlat'),
                               config.getfloat('main','QTHlon'),
-                              config.getint('main','Range') ) )
+                              config.getint('main','Range') ) ).encode() )
 
       line = s.recv(1200)
 
       if line:
         APRS_decode(line,'aprs')
       else:
-        print "APRS connection error, reconnecting in 20s"
+        print("APRS connection error, reconnecting in 20s")
         need_connect = True
         exit_script.wait(20)
 
     except (socket.timeout, socket.error) as e:
-      print "APRS connection error, reconnecting in 20s"
+      print("APRS connection error, reconnecting in 20s")
       verbose(e)
       need_connect = True
       s.close()
@@ -196,29 +207,29 @@ def init(z1,z2):
   global config,freq_range,qth,aprs_last_cycle,aprs_interval,sdrtst_templates
 
   if not os.path.isfile(args.config):
-    print "ERROR: config file not found: " + args.config
+    print("ERROR: config file not found: " + args.config)
     sys.exit()
 
   verbose("reading config: " + args.config)
   try:
-    config = ConfigParser.ConfigParser()   
+    config = configparser.ConfigParser()   
     config.read(args.config)
 
   except:
-    print "ERROR: error reading config file: " + args.config
+    print("ERROR: error reading config file: " + args.config)
     sys.exit()
 
 
-  for t,t_name in dict(sonde_types).iteritems():
+  for t,t_name in dict(sonde_types).items():
     if not config.has_section(t_name):
       sonde_types.pop(t)
 
   if len(sonde_types) == 0:
-    print "ERROR: need definitions for sonde types in config file"
+    print("ERROR: need definitions for sonde types in config file")
     sys.exit()
 
   sdrtst_templates={}
-  for t,t_name in dict(sonde_types).iteritems():
+  for t,t_name in dict(sonde_types).items():
     temp = set()
     section_items = config.items(t_name)
     for key,val in section_items:
@@ -228,7 +239,7 @@ def init(z1,z2):
     if len(temp) > 0:
       sdrtst_templates[t] = temp
     else:
-      print "ERROR: no SdrtstTemplate defined for %s, ignoring this type" % t_name
+      print("ERROR: no SdrtstTemplate defined for %s, ignoring this type" % t_name)
       time.sleep(1)
       sonde_types.pop(t)
 
@@ -327,7 +338,7 @@ def mark_landing_mode(freqs):
 	  	  AND landing_mode = '/:/AVAIL/:/' """,(args.output,f[0],f[1]))
     if ( dbc.rowcount > 0
          and not args.q ):
-      print ("Entering landing mode: (%.3f)" % (f[0]/1000.0))
+      print("Entering landing mode: (%.3f)" % (f[0]/1000.0))
 
   db.commit()
 
@@ -343,7 +354,7 @@ def flush_sdrtst_buffers(n):
 
   except:
     os.umask (oldmask)
-    print "ERROR: error writing tmp file: " + args.output + ".tmp"
+    print("ERROR: error writing tmp file: " + args.output + ".tmp")
     return 0
 
   for f in range (0, n):
@@ -355,7 +366,7 @@ def flush_sdrtst_buffers(n):
   try:
     os.rename(args.output+'.tmp',args.output)
   except:
-    print "ERROR: error writing file: " + args.output
+    print("ERROR: error writing file: " + args.output)
     return 0
 
   time.sleep(1.3)
@@ -384,7 +395,7 @@ def write_sdrtst_config(freqs):
 
   except:
     os.umask (oldmask)
-    print "ERROR: error writing tmp file: " + args.output + ".tmp"
+    print("ERROR: error writing tmp file: " + args.output + ".tmp")
     return 0
 
   new_freqs = set()
@@ -405,7 +416,7 @@ def write_sdrtst_config(freqs):
   try:
     os.rename(args.output+'.tmp',args.output)
   except:
-    print "ERROR: error writing file: " + args.output
+    print("ERROR: error writing file: " + args.output)
     return 0
 
 
@@ -443,7 +454,7 @@ def write_sdrtst_config(freqs):
       else:
         txt += ' '
 
-    print txt
+    print(txt)
 
 
 
@@ -468,7 +479,7 @@ def write_sdrtst_config_aprs():
 
   except:
     os.umask (oldmask)
-    print "ERROR: error writing tmp file: " + args.output + ".tmp"
+    print("ERROR: error writing tmp file: " + args.output + ".tmp")
     return 0
 
   tmp.write(config.get('aprs_cycles','AprsSdrtstConfig').strip('"')+"\n")
@@ -479,7 +490,7 @@ def write_sdrtst_config_aprs():
   try:
     os.rename(args.output+'.tmp',args.output)
   except:
-    print "ERROR: error writing file: " + args.output
+    print("ERROR: error writing file: " + args.output)
     return 0
 
 
@@ -525,8 +536,12 @@ def sonde_type_from_serial(s):
 def read_csv(file,external = False):
   global extra_wait
 
+
+  if not "://" in file:
+    file = "file://" + file
+
   try:
-    csvreader = csv.reader(urllib.urlopen(file), delimiter=';', quoting=csv.QUOTE_NONE)
+    csvreader = csv.reader(codecs.iterdecode(urlopen(file), 'utf-8'), delimiter=';', quoting=csv.QUOTE_NONE)
     verbose("reading "+file)
   except:
     return None
@@ -586,9 +601,9 @@ def APRS_decode(line,source=''):
   line.strip()
 
   try:
-    if (line and line.find(":;")>-0):
-      line_parts=line.split(":;")
-      if (source != 'aprs' and line_parts[0].find(" U:")==-1):
+    if (line and line.find(b":;")>-0):
+      line_parts=line.split(b":;")
+      if (source != 'aprs' and line_parts[0].find(b"U:")==-1):
         return None
 
       info=line_parts[1]
@@ -599,20 +614,20 @@ def APRS_decode(line,source=''):
       lat=float(info[17:19])+float(info[19:21])/60+float(info[22:24])/60/100
       lon=float(info[26:29])+float(info[29:31])/60+float(info[32:34])/60/100
 
-      if not ( info[25:26] == '/' and info[35:36] == 'O' ):
+      if not ( info[25:26] == b'/' and info[35:36] == b'O' ):
         return None						# not /O (balloon)
 
-      m=re.search('(?<=A=)\w+',info)
+      m=re.search(b'(?<=A=)\w+',info)
       if m:
         alt=int(int(m.group(0))/3.2808)
       else:
         return None
 
-      m=re.search('\sf=([0-9]{3}\.[0-9]+)(MHz)?',info)
+      m=re.search(b'\sf=([0-9]{3}\.[0-9]+)(MHz)?',info)
       if m:
         qrg=m.group(1)
       else:
-        m=re.search('\s([0-9\.]+)MHz',info)
+        m=re.search(b'\s([0-9\.]+)MHz',info)
         if m:
           qrg=m.group(1)
         else:
@@ -620,7 +635,7 @@ def APRS_decode(line,source=''):
 
       qrg=int(float(qrg)*1000.0)
 
-      m=re.search('(?<=Clb=)(-?[0-9.])+',info)
+      m=re.search(b'(?<=Clb=)(-?[0-9.])+',info)
       if m:
         vs=float(m.group(0))
       else:
@@ -673,7 +688,7 @@ def auto_channels():
       data = ac_file.read(64)
       ac_file.close()
 
-    m=re.search('([0-9]+)',data)
+    m=re.search('([0-9]+)',str(data))
     temp=int(m.group(1))
     if temp > 1000:
       temp = temp / 1000
@@ -784,12 +799,21 @@ try:
   db = sqlite3.connect(dbfile)
 
 except:
-  print "ERROR: cannot open database"
+  print("ERROR: cannot open database")
   sys.exit()
 
 finally:
   dbc = db.cursor()
   dbc.execute("PRAGMA journal_mode = wal")
+
+
+# delete APRS flag file
+try:
+  if config.has_option('aprs_cycles','AprsFlagFile'):
+    os.remove(config.get('aprs_cycles','AprsFlagFile'))
+except:
+  pass
+
 
 # populate database
 if not args.slave:
@@ -821,10 +845,11 @@ if not args.slave:
 
     verbose("populating database with frequencies to scan")
     dbc.execute("DELETE FROM freqs WHERE status <= 1")
+    db.commit()
     dbc.execute("VACUUM")
     db.commit()
 
-    for t,t_name in sonde_types.iteritems():
+    for t,t_name in sonde_types.items():
       if config.has_option(t_name,'ScanStep') and not args.no_blind:
         for f in scan_range_generator(config.getint(t_name,'ScanRangeLow'),
 		  config.getint(t_name,'ScanRangeHigh'),
@@ -847,11 +872,11 @@ else:									# slave mode
   try:
     while ( dbc.execute("SELECT name FROM sqlite_master WHERE name='freqs'").fetchone() == None
          or dbc.execute("SELECT COUNT(*) FROM freqs").fetchone() == 0 ):
-      print "Waiting for master process to set up database..."
+      print("Waiting for master process to set up database...")
       time.sleep(5)
 
   except:
-    print "ERROR: error connecting to database as slave"
+    print("ERROR: error connecting to database as slave")
     sys.exit()
 
 
@@ -862,8 +887,8 @@ while not exit_script.is_set():
   if (args.remote and remote_control_last_check + 90 < time.time()):
     try:
       remote_control_last_check = time.time();
-      remote_sdrtst_cfg = ""
-      remote_data = urllib.urlopen(args.remote)
+      remote_sdrtst_cfg = b""
+      remote_data = urlopen(args.remote)
 
       if remote_data.getcode() != 200:
         continue
@@ -877,30 +902,34 @@ while not exit_script.is_set():
       except:
         pass
 
+      lines=remote_data.readlines()
 
       remote_invalid = False
       valid_lines = 0
 
-      for line in remote_data:
+      for line in lines:
         line = line.strip()
 
-        if line[0:3] == "#E:":						# check expiration
+        if line[0:3] == b'#E:':						# check expiration
           if int(line[3:])+3600 < time.time():
             verbose("Remote control file expired")
             remote_invalid = True
             break
 
-        if line[0:3] == '#G:':
-          g = line[3:].split(',',2)
+        if line[0:3] == b'#G:':
+          g = line[3:].split(b',',2)
+          #if calc_distance((float(g[0]),float(g[1])),qth) > int(g[2]):
           if calc_distance((g[0],g[1]),qth) > int(g[2]):
             verbose("Remote control file out of geo range")
             remote_invalid = True
             break
 
-        if line[0:1] != '#' and len(line) > 10:
+        if line[0:1] != b'#' and len(line) > 10:
           valid_lines += 1
+          print("Valid line")
+          print(line)
 
-        remote_sdrtst_cfg += line + "\n"
+        remote_sdrtst_cfg += line + b"\n"
 
       if remote_invalid:
         continue						# restart main loop
@@ -916,22 +945,22 @@ while not exit_script.is_set():
       # write sdrtst config file
       try:
         oldmask = os.umask (000)
-        tmp=open(args.output+'.tmp','w')
-        tmp.write(remote_sdrtst_cfg + "\n")
+        tmp=open(args.output+'.tmp','wb')
+        tmp.write(remote_sdrtst_cfg)
         os.umask (oldmask)
         tmp.close()
         os.rename(args.output+'.tmp',args.output)
 
-        print "Using remote config " + args.remote
+        print("Using remote config " + args.remote)
       except:
-        print "ERROR: error writing file: " + args.output
+        print("ERROR: error writing file: " + args.output)
         raise
 
       exit_script.wait(90)
       continue
 
     except:
-      print "Remote control error";
+      print("Remote control error")
       pass
 
 
@@ -977,8 +1006,8 @@ while not exit_script.is_set():
 				AND abs(last_alt - ?) >= 20""",
                            (d[1], d[2], d[3], d[4], d[5], d[6], d[0], d[4]) )
         except:
-          print "ERROR writing entry to database:"
-          print d
+          print("ERROR writing entry to database:")
+          print(d)
           continue
 
       finally:
@@ -998,11 +1027,11 @@ while not exit_script.is_set():
                            (d[0], d[1], d[2]) )
             if ( dbc.rowcount > 0
                  and not args.q ):
-              print ("Sonde landing detected: " + d[0] + " (%.3f)" % (d[1]/1000.0))
+              print("Sonde landing detected: " + d[0] + " (%.3f)" % (d[1]/1000.0))
               aprs_last_cycle = int(time.time() + config.getint('main','CycleInterval') + 1)
         except:
-          print "ERROR when checking for landing:"
-          print d
+          print("ERROR when checking for landing:")
+          print(d)
           pass
 
       db.commit()
@@ -1025,7 +1054,7 @@ while not exit_script.is_set():
 
       if aprs_last_cycle + aprs_interval < time.time():
         if not args.q:
-          print "APRS cycle"
+          print("APRS cycle")
 
         # create flag file
         if config.has_option('aprs_cycles','AprsFlagFile'):
@@ -1052,7 +1081,7 @@ while not exit_script.is_set():
           os.remove(config.get('aprs_cycles','AprsFlagFile'))
 
     except:
-      print "APRS cycles configuration error"
+      print("APRS cycles configuration error")
       pass
 
 
@@ -1162,4 +1191,5 @@ verbose("exiting...")
 time.sleep(0.1)
 db.commit()
 db.close()
-print ""
+print("")
+

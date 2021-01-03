@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
 import time
@@ -39,7 +39,7 @@ def ps(row):
 _=os.system("clear")
 while True:
   try:
-    csvreader = csv.reader(open('/tmp/sonde.csv', 'rb'), delimiter=';', quoting=csv.QUOTE_NONE)
+    csvreader = csv.reader(open('/tmp/sonde.csv', 'r'), delimiter=';', quoting=csv.QUOTE_NONE)
     _=os.system("clear")
     for row in sorted(csvreader, key=lambda row: row[0]):
       ps(row)
