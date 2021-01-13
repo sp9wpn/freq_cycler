@@ -20,9 +20,7 @@ def ps(row):
   else:
     ttime = time.strftime("%-M:%S",time.gmtime(time.time()-t))
 
-  if (float(row[5]) > 0):
-    vss = u"↑"
-  elif (float(row[5]) < 0):
+  if (float(row[5]) < 0):
     vss = u"↓"
   else:
     vss = u" "
