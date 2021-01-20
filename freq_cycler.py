@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.11.0 (03.01.2021)
+# v1.11.1 (20.01.2021)
 # BSD licence
 
 import os
@@ -41,8 +41,7 @@ def verbose(t):
 
 
 default_external_urls = [
-	'http://radiosondy.info/export/csv_live.php',
-	'http://skp.wodzislaw.pl/sondy/last.php'
+	'http://radiosondy.info/export/csv_live.php'
 	]
 
 
