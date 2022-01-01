@@ -6,8 +6,8 @@ normalnie cały sprzęt jest gotowy. Potrzeba tylko trochę oprogramowania.
 
 Pomysł polega na podziale czasu pracy odbiornika pomiędzy sondy i częstotliwość APRS. Normalnie jest to podział
 mniej więcej pół na pół, ale jeśli zostanie wykryta aktywność na APRS, freq_cycler wydłuży czasy jego odbioru.
-I odwrotnie, sondy w trakcie lądowania otrzymują odbiornik na wyłączność. Wszystkie te czasy można ustawiaćw pliku
-konfiguracyjnym.
+I odwrotnie, sondy w trakcie lądowania otrzymują odbiornik na wyłączność. Wszystkie te czasy można ustawiać
+w pliku konfiguracyjnym.
 
 ### Jak to poustawiać ###
 1. Na początku potrzebujesz programowego dekodera APRS. Ja polecam direwolf. Jest dostępny w Raspbianie jako
@@ -67,7 +67,7 @@ prosty. Zapisz go jako direwolf.conf w katalogu domowym (np. /home/pi/direwolf.c
 
 8. W sekcji `[aprs_cycles]` config_pl.cfg ustaw parametry według swojego upodobania.
 
-9. Opcja AprsGPIO w tym pliku pozwala sterować pinem GPIO Raspberry Pi zgodnie z aktywnością trybu APRS.
+9. Opcja AprsGPIO w tym pliku pozwala sterować pinem GPIO Raspberry Pi zgodnie z aktywnością cyklów APRS.
    Jest to przydatne do przełączania anten i filtrów.
 
 10. Zrestartuj freq_cycler.py z dodatkowym argumentem `-aprsscan`.

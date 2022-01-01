@@ -67,7 +67,7 @@ in your home directory (eg. /home/pi/direwolf.conf)
 
 8. Adjust parameters in `[aprs_cycles]` section config.cfg to your liking.
 
-9. AprsGPIO option in the config is used to set Raspberry Pi GPIO pin high/low when APRS scan mode is active.
+9. AprsGPIO option in the config is used to set Raspberry Pi GPIO pin high/low during APRS cycle.
    This can be used for switching antennas and filters.
 
 10. Restart freq_cycler.py with extra `-aprsscan` argument.
