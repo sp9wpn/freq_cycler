@@ -4,9 +4,9 @@ Typowy odbiornik radiosond ma wszystko co potrzeba, by odbierać również APRS 
 Oczywiście jeśli zastosowano filtr SAW na 400MHz, to stacja będzie bezużyteczna na paśmie 433, ale
 normalnie cały sprzęt jest gotowy. Potrzeba tylko trochę oprogramowania.
 
-Pomysł polega na podziale czasu pracy odbiornika pomiędzy sondy i częstotliwość APRS. Normalnie jest to podział mniej więcej
-pół na pół, ale jeśli zostanie wykryta aktywność na APRS, freq_cycler wydłuży czasy jego odbioru. I odwrotnie, sondy
-w trakcie lądowania otrzymują odbiornik na wyłączność. Wszystkie te czasy można ustawiać w pliku
+Pomysł polega na podziale czasu pracy odbiornika pomiędzy sondy i częstotliwość APRS. Normalnie jest to podział
+mniej więcej pół na pół, ale jeśli zostanie wykryta aktywność na APRS, freq_cycler wydłuży czasy jego odbioru.
+I odwrotnie, sondy w trakcie lądowania otrzymują odbiornik na wyłączność. Wszystkie te czasy można ustawiaćw pliku
 konfiguracyjnym.
 
 ### Jak to poustawiać ###
@@ -67,6 +67,9 @@ prosty. Zapisz go jako direwolf.conf w katalogu domowym (np. /home/pi/direwolf.c
 
 8. W sekcji `[aprs_cycles]` config_pl.cfg ustaw parametry według swojego upodobania.
 
-9. Zrestartuj  freq_cycler.py z dodatkowym argumentem `-aprsscan`.
+9. Opcja AprsGPIO w tym pliku pozwala sterować pinem GPIO Raspberry Pi zgodnie z aktywnością trybu APRS.
+   Jest to przydatne do przełączania anten i filtrów.
 
-10. Do normalnej pracy, umieść zmiany i operacje z kroków 3, 4, 6, 7, 9 w skrypcie startowym.
+10. Zrestartuj freq_cycler.py z dodatkowym argumentem `-aprsscan`.
+
+11. Do normalnej pracy, umieść zmiany i operacje z kroków 3, 4, 6, 7, 10 w skrypcie startowym.

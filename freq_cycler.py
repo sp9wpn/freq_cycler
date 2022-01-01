@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.11.1 (20.01.2021)
+# v1.12.0 (01.01.2022)
 # BSD licence
 
 import os
@@ -814,6 +814,20 @@ except:
   pass
 
 
+if config.has_option('aprs_cycles','AprsGPIO'):
+  try:
+    import RPi.GPIO as GPIO
+    GPIO.setwarnings(False)
+    GPIOpin=config.getint('aprs_cycles','AprsGPIO')
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(abs(GPIOpin),GPIO.OUT)
+    GPIO.setwarnings(True)
+    GPIO.output(abs(GPIOpin), GPIO.LOW if GPIOpin>0 else GPIO.HIGH)
+  except:
+    print("ERROR setting up GPIO control")
+    sys.exit()
+
+
 # populate database
 if not args.slave:
   try:
@@ -925,8 +939,6 @@ while not exit_script.is_set():
 
         if line[0:1] != b'#' and len(line) > 10:
           valid_lines += 1
-          print("Valid line")
-          print(line)
 
         remote_sdrtst_cfg += line + b"\n"
 
@@ -1061,6 +1073,10 @@ while not exit_script.is_set():
 
         write_sdrtst_config_aprs()
 
+        # set GPIO pin
+        if config.has_option('aprs_cycles','AprsGPIO'):
+          GPIO.output(abs(GPIOpin), GPIO.HIGH if GPIOpin>0 else GPIO.LOW)
+
         old_selected_freqs=set()
 
         exit_script.wait(config.getint('aprs_cycles','AprsCycle'))
@@ -1078,6 +1094,10 @@ while not exit_script.is_set():
         # delete flag file
         if config.has_option('aprs_cycles','AprsFlagFile'):
           os.remove(config.get('aprs_cycles','AprsFlagFile'))
+
+        # set GPIO pin
+        if config.has_option('aprs_cycles','AprsGPIO'):
+          GPIO.output(abs(GPIOpin), GPIO.LOW if GPIOpin>0 else GPIO.HIGH)
 
     except:
       print("APRS cycles configuration error")

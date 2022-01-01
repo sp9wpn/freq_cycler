@@ -18,8 +18,8 @@ as a binary package, so just run:
    ```
    You can also build it from sources: https://github.com/wb2osz/direwolf
 
-2. Prepare direwolf config file. As we are not repeating packets, it's very simple one. Save it as direwolf.conf in your
-home directory (eg. /home/pi/direwolf.conf)
+2. Prepare direwolf config file. As we are not repeating packets, it's very simple one. Save it as direwolf.conf
+in your home directory (eg. /home/pi/direwolf.conf)
   
    (change `N0CALL` to your callsign and put your APRS-IS password where `00000` is)
 
@@ -67,6 +67,10 @@ home directory (eg. /home/pi/direwolf.conf)
 
 8. Adjust parameters in `[aprs_cycles]` section config.cfg to your liking.
 
-9. Restart freq_cycler.py with extra `-aprsscan` argument.
+9. AprsGPIO option in the config is used to set Raspberry Pi GPIO pin high/low when APRS scan mode is active.
+   This can be used for switching antennas and filters.
 
-10. For normal operation, incorporate actions and changes from steps 3, 4, 6, 7, 9 above into your startup script.
+10. Restart freq_cycler.py with extra `-aprsscan` argument.
+
+11. For normal operation, incorporate actions and changes from steps 3, 4, 6, 7, 10 above into your startup script.
+
