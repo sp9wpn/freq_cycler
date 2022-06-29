@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.13.1 (29.06.2022)
+# v1.13.2 (29.06.2022)
 # BSD licence
 
 import os
@@ -1080,11 +1080,11 @@ while not exit_script.is_set():
         if config.has_option('aprs_cycles','AprsFlagFile'):
           open(config.get('aprs_cycles','AprsFlagFile'), 'a').close()
 
-        write_sdrtst_config_aprs()
-
         # set GPIO pin
         if config.has_option('aprs_cycles','AprsGPIO'):
           GPIO.output(abs(GPIOpin), GPIO.HIGH if GPIOpin>0 else GPIO.LOW)
+
+        write_sdrtst_config_aprs()
 
         old_selected_freqs=set()
 
