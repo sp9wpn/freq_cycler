@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.12.0 (01.01.2022)
+# v1.13.1 (29.06.2022)
 # BSD licence
 
 import os
@@ -105,9 +105,10 @@ else:
 
 
 
-sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM
+sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM, MP3
                 1: 'sonde_pilotsonde',
-                2: 'sonde_m10'
+                2: 'sonde_m10',
+                3: 'sonde_m20'
               }
 
 
@@ -446,10 +447,12 @@ def write_sdrtst_config(freqs):
 
       txt += "%.3f" % (int(nf[0])/1000.0)
 
-      if nf[1] == 1:
+      if sonde_types[nf[1]] == 'sonde_pilotsonde':
         txt += 'p'
-      elif nf[1] == 2:
+      elif sonde_types[nf[1]] == 'sonde_m10':
         txt += 'm'
+      elif sonde_types[nf[1]] == 'sonde_m20':
+        txt += 'M'
       else:
         txt += ' '
 
@@ -518,8 +521,10 @@ def sonde_type_from_serial(s):
       return 0					# DFM (standard)
     else:
       return 2					# M10
-  elif s[0:2] == 'ME':
+  elif s[0:3] == 'ME0' or s[0:3] == 'ME1':
     return 2					# M10
+  elif s[0:3] == 'ME8' or s[0:3] == 'ME9':
+    return 3					# M20
   elif s[0:1] == 'P' and not s[1:2].isdigit():
     return 1					# pilotSonde
   elif s[0:1] == 'B' and not s[1:2].isdigit():
@@ -545,55 +550,59 @@ def read_csv(file,external = False):
   except:
     return None
 
-  for r in csvreader:
-    try:
-      sonde_type = sonde_type_from_serial(r[0])
-      if sonde_type not in sonde_types:
-        continue
-
+  try:
+    for r in csvreader:
       try:
-        qrg=int(float(r[7])*1000)
-      except:
-        continue
-
-      try:
-        if (     external == False
-             and qrg == 0
-             and r[8].isdigit()
-             and (time.time()-int(r[8]) <= min(config.getint('main','CycleInterval'),5)) ):
-          extra_wait = 52
-      except:
-        pass
-
-      try:
-        if int(r[8])+(config.getint('main','SignalTimeout') * 60) < time.time():
+        sonde_type = sonde_type_from_serial(r[0])
+        if sonde_type not in sonde_types:
           continue
 
-        status_expire = int(r[8]) + config.getint('main','SignalTimeout') * 60
+        try:
+          qrg=int(float(r[7])*1000)
+        except:
+          continue
+
+        try:
+          if (     external == False
+               and qrg == 0
+               and r[8].isdigit()
+               and (time.time()-int(r[8]) <= min(config.getint('main','CycleInterval'),5)) ):
+            extra_wait = 52
+        except:
+          pass
+
+        try:
+          if int(r[8])+(config.getint('main','SignalTimeout') * 60) < time.time():
+            continue
+
+          status_expire = int(r[8]) + config.getint('main','SignalTimeout') * 60
+
+        except:
+          status_expire = int(time.time() + config.getint('main','SignalTimeout') * 60)
+          pass
+
+        distance = calc_distance((r[1],r[2]),qth)
+        if external and distance > config.getint('main','Range'):
+          continue
+
+        try:
+          vs=float(r[5])
+        except:
+          vs=0.0
+
+        # serial, freq, type, status, last_alt, status_expire, distance, vs
+        if external:
+          q.put((r[0],qrg,sonde_type,2,int(r[3]),status_expire,distance,vs))
+        else:
+          q.put((r[0],qrg,sonde_type,3,int(r[3]),status_expire,distance,vs))
+        verbose(" ..%1d  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (sonde_type, r[0], float(r[1]), float(r[2]), int(r[3]), vs, qrg/1000.0 ))
 
       except:
-        status_expire = int(time.time() + config.getint('main','SignalTimeout') * 60)
-        pass
-
-      distance = calc_distance((r[1],r[2]),qth)
-      if external and distance > config.getint('main','Range'):
         continue
-
-      try:
-        vs=float(r[5])
-      except:
-        vs=0.0
-
-      # serial, freq, type, status, last_alt, status_expire, distance, vs
-      if external:
-        q.put((r[0],qrg,sonde_type,2,int(r[3]),status_expire,distance,vs))
-      else:
-        q.put((r[0],qrg,sonde_type,3,int(r[3]),status_expire,distance,vs))
-      verbose(" ..%1d  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (sonde_type, r[0], float(r[1]), float(r[2]), int(r[3]), vs, qrg/1000.0 ))
-
-    except:
-      continue
  
+  except:
+    print("ERROR: error parsing %s" % file)
+    pass
 
 
 def APRS_decode(line,source=''):
@@ -1002,7 +1011,7 @@ while not exit_script.is_set():
         continue;
 
       # round PilotSonde QRG to 5kHz
-      if d[2] == 1:
+      if sonde_types[d[2]] == 'sonde_pilotsonde':
         d[1] = int(round(d[1] / 5.0) * 5)
 
       try:
