@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.13.2 (29.06.2022)
+# v1.13.3 (01.07.2022)
 # BSD licence
 
 import os
@@ -107,8 +107,7 @@ else:
 
 sonde_types = { 0: 'sonde_standard',				# RS41, RS92, DFM, MP3
                 1: 'sonde_pilotsonde',
-                2: 'sonde_m10',
-                3: 'sonde_m20'
+                2: 'sonde_m10'
               }
 
 
@@ -451,8 +450,6 @@ def write_sdrtst_config(freqs):
         txt += 'p'
       elif sonde_types[nf[1]] == 'sonde_m10':
         txt += 'm'
-      elif sonde_types[nf[1]] == 'sonde_m20':
-        txt += 'M'
       else:
         txt += ' '
 
@@ -520,11 +517,11 @@ def sonde_type_from_serial(s):
     if s[0:2] == '16' or s[0:2] == '17' or s[0:2] == '18' or s[0:2] == '19' or s[0:2] == '00':
       return 0					# DFM (standard)
     else:
-      return 2					# M10
+      return 2					# M10/M20
   elif s[0:3] == 'ME0' or s[0:3] == 'ME1':
-    return 2					# M10
+    return 2					# M10/M20
   elif s[0:3] == 'ME8' or s[0:3] == 'ME9':
-    return 3					# M20
+    return 2					# M10/M20
   elif s[0:1] == 'P' and not s[1:2].isdigit():
     return 1					# pilotSonde
   elif s[0:1] == 'B' and not s[1:2].isdigit():

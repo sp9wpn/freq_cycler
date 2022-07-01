@@ -80,7 +80,6 @@ Argument -csv wskazuje URL ze źródłem danych. Można go użyć więcej niż r
 pobierać dane z kilku źródeł.
 Jeśli -csv nie zostanie użyte, domyślna lista adresów jest następująca:
  * http://radiosondy.info/export/csv_live.php
- * http://skp.wodzislaw.pl/sondy/last.php
 
 Aby całkowicie wyłączyć tę funkcję, użyj -no-external-csv
 
@@ -193,8 +192,8 @@ dopóki sygnał sondy nie zostanie uznany za utracony. Częstotliwość bez pref
 to częstotliwość ślepego skanowania.
 
 Drukowane częstotliwości mają również końcówki oznaczające specjalne typy sond
- - 'p' oznacza PilotSonde, a 'm' M10. Wszystkie pozostałe (RS41, RS92, DFM i
-inne) nie mają końcówki.
+ - 'p' oznacza PilotSonde, 'm' - M10/M20. Wszystkie pozostałe (RS41, RS92,
+DFM, MP3 i inne) nie mają końcówki.
 
 
 

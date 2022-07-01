@@ -77,7 +77,6 @@ sondes from sonde-dedicated websites. New data is checked every 3 minutes. Use
 use multiple sources.
 When -csv is not used, default list of URLs is as follow:
  * http://radiosondy.info/export/csv_live.php
- * http://skp.wodzislaw.pl/sondy/last.php
 
 To disable this feature completely, use -no-external-csv
 
@@ -183,7 +182,7 @@ active for this frequency - frequencies won't be changed until the signal is
 considered lost. A frequency without a prefix is a blind-scanning frequency.
 
 Frequencies have also suffixes to indicate special sonde types - 'p' is for
-PilotSonde and 'm' is for M10. All other (RS41, RS92, DFM...) have no suffix.
+PilotSonde, 'm' is for M10/M20. All other (RS41, RS92, DFM, MP3...) have no suffix.
 
 
 
