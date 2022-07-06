@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.13.3 (01.07.2022)
+# v1.13.4 (06.07.2022)
 # BSD licence
 
 import os
@@ -655,7 +655,7 @@ def APRS_decode(line,source=''):
 
       # serial, freq, type, status, last_alt, status_expire, distance, vs
       q.put((sonde_id,qrg,sonde_type,3,alt,status_expire,distance,vs))
-      verbose("%s:  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (source, sonde_id, lat, lon, alt, vs, qrg/1000.0 ))
+      verbose("%s:  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (source, sonde_id.decode("UTF-8"), lat, lon, alt, vs, qrg/1000.0 ))
 
   except:
     pass
