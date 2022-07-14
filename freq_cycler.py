@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.13.4 (06.07.2022)
+# v1.13.5 (14.07.2022)
 # BSD licence
 
 import os
@@ -628,15 +628,24 @@ def APRS_decode(line,source=''):
       else:
         return None
 
+      qrg=0
       m=re.search(b'\sf=([0-9]{3}\.[0-9]+)(MHz)?',info)
       if m:
         qrg=m.group(1)
-      else:
+
+      if (qrg == 0):
         m=re.search(b'\s([0-9\.]+)MHz',info)
         if m:
           qrg=m.group(1)
-        else:
-          return None
+
+      if (qrg == 0):
+        m=re.search(b'\srx=([0-9]{6})\(',info)
+        if m:
+          qrg=float(m.group(1))/1000.0
+
+      if (qrg == 0):
+        return None
+
 
       qrg=int(float(qrg)*1000.0)
 
