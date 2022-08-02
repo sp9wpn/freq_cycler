@@ -58,8 +58,8 @@ If you're using original dxlAPRS, three extra steps have to be followed:
 
 1. dxlAPRS does not provide /tmp/sonde.csv, so to extract information about
 locally received sondes, freq_cycler needs to read log by local udpgate4. You
-need to use at least level 2 logging in udpgate4, eg. -l 2:/tmp/udpgate.log Use
--udplog <file> parameter to point freq_cycler to this log file.
+need to use level 0 logging in udpgate4, ie. -l 0:/tmp/udpgate.log
+Use -udplog <file> parameter to point freq_cycler to this log file.
 
 2. As dxlAPRS does not decode PilotSondes, remove relevant section from the
 config file [sonde_pilotsonde].
@@ -72,11 +72,12 @@ SECOND element from SdrtstTemplate line in the config file.
                      * * *  Reading CSV data from the web  * * *
 
 To share data between stations, script reads CSV-formatted list of detected
-sondes from sonde-dedicated websites. New data is checked every 3 minutes. Use
+sondes from dedicated websites. New data is checked every 3 minutes. Use
 -csv argument to provide URL with this data. It can be used more than once to
 use multiple sources.
 When -csv is not used, default list of URLs is as follow:
  * http://radiosondy.info/export/csv_live.php
+ * http://api.wettersonde.net/sonde_csv.php
 
 To disable this feature completely, use -no-external-csv
 

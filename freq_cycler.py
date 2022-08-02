@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.13.5 (14.07.2022)
+# v1.14.0 (2.08.2022)
 # BSD licence
 
 import os
@@ -27,7 +27,7 @@ except ImportError:
     from urllib2 import urlopen			#py2
 import csv
 import email.utils
-import datetime
+from datetime import datetime
 import calendar
 import codecs
 from math import sin, cos, sqrt, atan2, radians
@@ -41,7 +41,8 @@ def verbose(t):
 
 
 default_external_urls = [
-	'http://radiosondy.info/export/csv_live.php'
+	'http://radiosondy.info/export/csv_live.php',
+	'http://api.wettersonde.net/sonde_csv.php'
 	]
 
 
@@ -127,7 +128,7 @@ exit_script = Event()
 
 def thread_external_sondelist(url):
   while not exit_script.is_set():
-    read_csv(url,True)
+    read_csv(url)
     exit_script.wait(180)
 
 
@@ -534,12 +535,36 @@ def sonde_type_from_serial(s):
     return 0					# standard
 
 
-def read_csv(file,external = False):
-  global extra_wait
 
+def sonde_type_from_text(t):
+  if t == '':
+    return -1
+  elif t[0:4] == 'RS41' or t[0:4] == 'RS92':
+    return 0
+  elif t[0:3] == 'DFM':
+    return 0
+  elif t == 'MRZ' or t == 'iMET':
+    return 0
+  elif t == 'M10' or t == 'M20':
+    return 2
+  else:
+    return -1
+
+
+def read_csv(file):
+  # csv_source: 0: local sonde.csv   1: external csv   2: wettersonde api
+  global extra_wait
 
   if not "://" in file:
     file = "file://" + file
+
+  external = True
+  if file[0:7] == "file://":
+    external = False
+
+  csv_format = 1				# sonde.csv
+  if file[0:27] == "http://api.wettersonde.net/":
+    csv_format = 2
 
   try:
     csvreader = csv.reader(codecs.iterdecode(urlopen(file), 'utf-8'), delimiter=';', quoting=csv.QUOTE_NONE)
@@ -550,7 +575,51 @@ def read_csv(file,external = False):
   try:
     for r in csvreader:
       try:
-        sonde_type = sonde_type_from_serial(r[0])
+        if csv_format == 1:			# sonde.csv
+          i_ser, i_lat, i_lon, i_alt = r[0], r[1], r[2], int(r[3])
+          i_qrg = int(float(r[7])*1000)
+
+          i_type = ''
+
+          try:
+            i_time = int(r[8])
+          except:
+            i_time = 0
+
+          try:
+            i_vs = float(r[5])
+          except:
+            i_vs=0.0
+
+        elif csv_format == 2:			# wettersonde API
+          i_ser, i_lat, i_lon, i_alt = r[0], r[2], r[3], int(r[4])
+          i_qrg = int(float(r[5])*1000)
+
+          if i_ser == 'Serial':
+            continue
+
+          i_type = r[6]
+
+          try:
+            i_time = (datetime.strptime(r[1], '%Y-%m-%dT%H:%M:%S') - datetime(1970,1,1)).total_seconds()
+          except:
+            i_time = 0
+
+          try:
+            i_vs = float(r[7])
+          except:
+            i_vs=0.0
+
+        else:
+          raise
+
+      except:
+        continue
+
+      try:
+        sonde_type = sonde_type_from_text(i_type)
+        if sonde_type not in sonde_types:
+          sonde_type = sonde_type_from_serial(i_ser)
         if sonde_type not in sonde_types:
           continue
 
@@ -560,39 +629,34 @@ def read_csv(file,external = False):
           continue
 
         try:
-          if (     external == False
-               and qrg == 0
-               and r[8].isdigit()
-               and (time.time()-int(r[8]) <= min(config.getint('main','CycleInterval'),5)) ):
+          if ( external == False
+               and i_qrg == 0
+               and i_time > 0
+               and (time.time()-i_time <= min(config.getint('main','CycleInterval'),5)) ):
             extra_wait = 52
         except:
           pass
 
         try:
-          if int(r[8])+(config.getint('main','SignalTimeout') * 60) < time.time():
+          if i_time+(config.getint('main','SignalTimeout') * 60) < time.time():
             continue
 
-          status_expire = int(r[8]) + config.getint('main','SignalTimeout') * 60
+          status_expire = i_time + config.getint('main','SignalTimeout') * 60
 
         except:
           status_expire = int(time.time() + config.getint('main','SignalTimeout') * 60)
           pass
 
-        distance = calc_distance((r[1],r[2]),qth)
+        distance = calc_distance((i_lat,i_lon),qth)
         if external and distance > config.getint('main','Range'):
           continue
 
-        try:
-          vs=float(r[5])
-        except:
-          vs=0.0
-
         # serial, freq, type, status, last_alt, status_expire, distance, vs
         if external:
-          q.put((r[0],qrg,sonde_type,2,int(r[3]),status_expire,distance,vs))
+          q.put((i_ser,i_qrg,sonde_type,2,i_alt,status_expire,distance,i_vs))
         else:
-          q.put((r[0],qrg,sonde_type,3,int(r[3]),status_expire,distance,vs))
-        verbose(" ..%1d  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (sonde_type, r[0], float(r[1]), float(r[2]), int(r[3]), vs, qrg/1000.0 ))
+          q.put((i_ser,i_qrg,sonde_type,3,i_alt,status_expire,distance,i_vs))
+        verbose(" ..%1d  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (sonde_type, i_ser, float(i_lat), float(i_lon), i_alt, i_vs, i_qrg/1000.0 ))
 
       except:
         continue
@@ -1053,7 +1117,7 @@ while not exit_script.is_set():
                            (d[0], d[1], d[2]) )
             if ( dbc.rowcount > 0
                  and not args.q ):
-              print("Sonde landing detected: " + d[0] + " (%.3f)" % (d[1]/1000.0))
+              print("Sonde landing detected: %s (%.3f)" % (d[0],d[1]/1000.0))
               aprs_last_cycle = int(time.time() + config.getint('main','CycleInterval') + 1)
         except:
           print("ERROR when checking for landing:")

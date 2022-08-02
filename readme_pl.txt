@@ -61,8 +61,8 @@ Jeśli używasz oryginalnego dxlAPRS, musisz wykonać trzy dodatkowe czynności:
 
 1. dxlAPRS nie udostępnia /tmp/sonde.csv, zatem aby odbierać informacje o
 odebranych lokalnie sondach, freq_cycler potrzebuje czytać log lokalnego
-udpgate4. Włącz logowanie na co najmniej 2 poziom, tj. -l 2:/tmp/udpgate.log
-Następnie parametrem -udplog <plik> wskaż freq_cycler właśnie ten log.
+udpgate4. Włącz logowanie na poziom 0, tj. -l 0:/tmp/udpgate.log
+Następnie parametrem -udplog <plik> wskaż freq_cycler właśnie ten plik.
 
 2. Ponieważ dxlAPRS nie dekoduje sond PilotSonde, usuń odpowiadającą im sekcję
 z pliku konfiguracyjnego, czyli [sonde_pilotsonde].
@@ -80,6 +80,7 @@ Argument -csv wskazuje URL ze źródłem danych. Można go użyć więcej niż r
 pobierać dane z kilku źródeł.
 Jeśli -csv nie zostanie użyte, domyślna lista adresów jest następująca:
  * http://radiosondy.info/export/csv_live.php
+ * http://api.wettersonde.net/sonde_csv.php
 
 Aby całkowicie wyłączyć tę funkcję, użyj -no-external-csv
 
