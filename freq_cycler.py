@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.14.0 (2.08.2022)
+# v1.14.1 (11.08.2022)
 # BSD licence
 
 import os
@@ -424,7 +424,7 @@ def write_sdrtst_config(freqs):
     txt = "New freqs:"
 
     for nf in sorted(new_freqs):
-      status = db.execute("""SELECT max(status), landing_mode, serial
+      status = dbc.execute("""SELECT max(status), landing_mode, serial
 				FROM freqs
 				WHERE freq = ?
 				  AND type = ?
