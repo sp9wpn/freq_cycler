@@ -193,8 +193,8 @@ dopóki sygnał sondy nie zostanie uznany za utracony. Częstotliwość bez pref
 to częstotliwość ślepego skanowania.
 
 Drukowane częstotliwości mają również końcówki oznaczające specjalne typy sond
- - 'p' oznacza PilotSonde, 'm' - M10/M20. Wszystkie pozostałe (RS41, RS92,
-DFM, MP3 i inne) nie mają końcówki.
+ - 'p' oznacza PilotSonde, 'm' - M10/M20, 'a' - ATMS. Wszystkie pozostałe (RS41,
+RS92, DFM, MP3 i inne) nie mają końcówki.
 
 
 
