@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.15.0 (14.09.2022)
+# v1.15.1 (6.10.2022)
 # BSD licence
 
 import os
@@ -33,7 +33,6 @@ import codecs
 from math import sin, cos, sqrt, atan2, radians
 from threading import Thread
 from threading import Event
-
 
 def verbose(t):
   if args.v:
@@ -597,16 +596,19 @@ def read_csv(file):
             i_vs=0.0
 
         elif csv_format == 2:			# wettersonde API
-          i_ser, i_lat, i_lon, i_alt = r[0], r[2], r[3], int(r[4])
-          i_qrg = int(float(r[5])*1000)
-
+          i_ser = r[0]
           if i_ser == 'Serial':
             continue
+
+          i_lat, i_lon, i_alt = r[2], r[3], int(r[4])
+          i_qrg = int(float(r[5])*1000)
 
           i_type = r[6]
 
           try:
             i_time = (datetime.strptime(r[1], '%Y-%m-%dT%H:%M:%S') - datetime(1970,1,1)).total_seconds()
+            while i_time > time.time() + 600:
+              i_time -= 3600
           except:
             i_time = 0
 
@@ -626,6 +628,7 @@ def read_csv(file):
         if sonde_type not in sonde_types:
           sonde_type = sonde_type_from_serial(i_ser)
         if sonde_type not in sonde_types:
+          verbose("  ? unknown type: %s %s" % (i_type, i_ser))
           continue
 
         try:
@@ -661,7 +664,8 @@ def read_csv(file):
           q.put((i_ser,i_qrg,sonde_type,2,i_alt,status_expire,distance,i_vs))
         else:
           q.put((i_ser,i_qrg,sonde_type,3,i_alt,status_expire,distance,i_vs))
-        verbose(" ..%1d  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (sonde_type, i_ser, float(i_lat), float(i_lon), i_alt, i_vs, i_qrg/1000.0 ))
+
+        verbose(" ..%1d  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz  %s" % (sonde_type, i_ser, float(i_lat), float(i_lon), i_alt, i_vs, i_qrg/1000.0, time.strftime('%H:%M:%S', time.localtime(i_time)) ) )
 
       except:
         continue
