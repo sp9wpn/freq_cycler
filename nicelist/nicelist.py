@@ -66,9 +66,6 @@ def parserow(row):
 
   dist = calc_distance(qth,(row[1],row[2]))
 
-  if float(row[7]) < 400:
-    return None
-
   if dist > 2000:
     return None
 
