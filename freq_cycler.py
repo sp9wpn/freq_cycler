@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.15.1 (6.10.2022)
+# v1.15.2 (29.10.2022)
 # BSD licence
 
 import os
@@ -35,9 +35,14 @@ from threading import Thread
 from threading import Event
 
 def verbose(t):
-  if args.v:
-    print(t)
+  if args.v or args.vv:
+    vprint(t)
 
+def vprint(t):
+  if args.vv:
+    print(datetime.now().strftime("%d.%m.%Y %H:%M:%S ") + t)
+  else:
+    print(t)
 
 default_external_urls = [
 	'http://radiosondy.info/export/csv_live.php',
@@ -68,6 +73,7 @@ argparser.add_argument('-bw', metavar='<kHz>', type=int, help='RTL max badwidth 
 
 mut_excl_group3 = argparser.add_mutually_exclusive_group()
 mut_excl_group3.add_argument('-v', action='store_true', help='verbose mode')
+mut_excl_group3.add_argument('-vv', action='store_true', help='verbose with timestamps')
 mut_excl_group3.add_argument('-q', action='store_true', help='quiet mode (show only errors)')
 
 argparser.add_argument('config', help='configuration file (input)')
@@ -77,7 +83,7 @@ args=argparser.parse_args()
 
 
 if not os.path.isfile(args.config):
-  print("ERROR: config file not found: " + args.config)
+  vprint("ERROR: config file not found: " + args.config)
   sys.exit()
 
 try:
@@ -85,12 +91,12 @@ try:
   config.read(args.config)
 
 except:
-  print("ERROR: error reading config file: " + args.config)
+  vprint("ERROR: error reading config file: " + args.config)
   sys.exit()
 
 
 if os.access (args.output, os.F_OK) and not os.access(args.output, os.W_OK):
-  print("ERROR: access denied to output file: " + args.output)
+  vprint("ERROR: access denied to output file: " + args.output)
   sys.exit()
 
 
@@ -99,7 +105,7 @@ if config.has_option('main','Database') and config.get('main','Database'):
   verbose("using "+dbfile+" as database")
 else:
   if args.slave:
-    print("ERROR: -slave requires Database defined (check "+args.config+")")
+    vprint("ERROR: -slave requires Database defined (check "+args.config+")")
     sys.exit()
   dbfile = ":memory:"
 
@@ -159,7 +165,7 @@ def thread_read_udpgate_log(filename):
     except:
       pass
 
-    print("ERROR: error accessing "+str(filename)+", trying to reopen in 20s")
+    vprint("ERROR: error accessing "+str(filename)+", trying to reopen in 20s")
     exit_script.wait(20)
 
 
@@ -189,12 +195,12 @@ def thread_read_APRS(ip,port):
       if line:
         APRS_decode(line,'aprs')
       else:
-        print("APRS connection error, reconnecting in 20s")
+        vprint("APRS connection error, reconnecting in 20s")
         need_connect = True
         exit_script.wait(20)
 
     except (socket.timeout, socket.error) as e:
-      print("APRS connection error, reconnecting in 20s")
+      vprint("APRS connection error, reconnecting in 20s")
       verbose(e)
       need_connect = True
       s.close()
@@ -338,7 +344,7 @@ def mark_landing_mode(freqs):
 	  	  AND landing_mode = '/:/AVAIL/:/' """,(args.output,f[0],f[1]))
     if ( dbc.rowcount > 0
          and not args.q ):
-      print("Entering landing mode: (%.3f)" % (f[0]/1000.0))
+      vprint("Entering landing mode: (%.3f)" % (f[0]/1000.0))
 
   db.commit()
 
@@ -354,7 +360,7 @@ def flush_sdrtst_buffers(n):
 
   except:
     os.umask (oldmask)
-    print("ERROR: error writing tmp file: " + args.output + ".tmp")
+    vprint("ERROR: error writing tmp file: " + args.output + ".tmp")
     return 0
 
   for f in range (0, n):
@@ -366,7 +372,7 @@ def flush_sdrtst_buffers(n):
   try:
     os.rename(args.output+'.tmp',args.output)
   except:
-    print("ERROR: error writing file: " + args.output)
+    vprint("ERROR: error writing file: " + args.output)
     return 0
 
   time.sleep(1.3)
@@ -395,7 +401,7 @@ def write_sdrtst_config(freqs):
 
   except:
     os.umask (oldmask)
-    print("ERROR: error writing tmp file: " + args.output + ".tmp")
+    vprint("ERROR: error writing tmp file: " + args.output + ".tmp")
     return 0
 
   new_freqs = set()
@@ -416,7 +422,7 @@ def write_sdrtst_config(freqs):
   try:
     os.rename(args.output+'.tmp',args.output)
   except:
-    print("ERROR: error writing file: " + args.output)
+    vprint("ERROR: error writing file: " + args.output)
     return 0
 
 
@@ -456,7 +462,7 @@ def write_sdrtst_config(freqs):
       else:
         txt += ' '
 
-    print(txt)
+    vprint(txt)
 
 
 
@@ -481,7 +487,7 @@ def write_sdrtst_config_aprs():
 
   except:
     os.umask (oldmask)
-    print("ERROR: error writing tmp file: " + args.output + ".tmp")
+    vprint("ERROR: error writing tmp file: " + args.output + ".tmp")
     return 0
 
   tmp.write(config.get('aprs_cycles','AprsSdrtstConfig').strip('"')+"\n")
@@ -492,7 +498,7 @@ def write_sdrtst_config_aprs():
   try:
     os.rename(args.output+'.tmp',args.output)
   except:
-    print("ERROR: error writing file: " + args.output)
+    vprint("ERROR: error writing file: " + args.output)
     return 0
 
 
@@ -671,7 +677,7 @@ def read_csv(file):
         continue
  
   except:
-    print("ERROR: error parsing %s" % file)
+    vprint("ERROR: error parsing %s" % file)
     pass
 
 
@@ -973,7 +979,7 @@ else:									# slave mode
   try:
     while ( dbc.execute("SELECT name FROM sqlite_master WHERE name='freqs'").fetchone() == None
          or dbc.execute("SELECT COUNT(*) FROM freqs").fetchone() == 0 ):
-      print("Waiting for master process to set up database...")
+      vprint("Waiting for master process to set up database...")
       time.sleep(5)
 
   except:
@@ -1050,16 +1056,16 @@ while not exit_script.is_set():
         tmp.close()
         os.rename(args.output+'.tmp',args.output)
 
-        print("Using remote config " + args.remote)
+        vprint("Using remote config " + args.remote)
       except:
-        print("ERROR: error writing file: " + args.output)
+        vprint("ERROR: error writing file: " + args.output)
         raise
 
       exit_script.wait(90)
       continue
 
     except:
-      print("Remote control error")
+      vprint("Remote control error")
       pass
 
 
@@ -1105,8 +1111,8 @@ while not exit_script.is_set():
 				AND abs(last_alt - ?) >= 20""",
                            (d[1], d[2], d[3], d[4], d[5], d[6], d[0], d[4]) )
         except:
-          print("ERROR writing entry to database:")
-          print(d)
+          vprint("ERROR writing entry to database:")
+          vprint(d)
           continue
 
       finally:
@@ -1126,11 +1132,11 @@ while not exit_script.is_set():
                            (d[0], d[1], d[2]) )
             if ( dbc.rowcount > 0
                  and not args.q ):
-              print("Sonde landing detected: %s (%.3f)" % (d[0],d[1]/1000.0))
+              vprint("Sonde landing detected: %s (%.3f)" % (d[0],d[1]/1000.0))
               aprs_last_cycle = int(time.time() + config.getint('main','CycleInterval') + 1)
         except:
-          print("ERROR when checking for landing:")
-          print(d)
+          vprint("ERROR when checking for landing:")
+          vprint(d)
           pass
 
       db.commit()
@@ -1153,7 +1159,7 @@ while not exit_script.is_set():
 
       if aprs_last_cycle + aprs_interval < time.time():
         if not args.q:
-          print("APRS cycle")
+          vprint("APRS cycle")
 
         # create flag file
         if config.has_option('aprs_cycles','AprsFlagFile'):
@@ -1188,7 +1194,7 @@ while not exit_script.is_set():
           GPIO.output(abs(GPIOpin), GPIO.LOW if GPIOpin>0 else GPIO.HIGH)
 
     except:
-      print("APRS cycles configuration error")
+      vprint("APRS cycles configuration error")
       pass
 
 

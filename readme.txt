@@ -18,7 +18,7 @@ usage: freq_cycler.py [-h] [-csv <url> | -no-external-csv] [-udplog <file>]
                       [-aprslog <IP:port>] [-remote <url>] [-slave]
                       [-aprsscan] [-c <num>] [-bc <num|percent%>] [-no-blind]
                       [-f <kHz> <kHz>] [-bflush] [-ppm <ppm>] [-agc <0|1>]
-                      [-gain <gain|auto>] [-bw <kHz>] [-v | -q]
+                      [-gain <gain|auto>] [-bw <kHz>] [-v | -vv | -q]
                       config output
 
 positional arguments:
@@ -48,6 +48,7 @@ optional arguments:
                       ('auto' or 0.0, 0.9, 1.4 ... 48.0, 49.6)
   -bw <kHz>           RTL max badwidth (default: 1900)
   -v                  verbose mode
+  -vv                 verbose with timestamps
   -q                  quiet mode (show only errors)
 
 

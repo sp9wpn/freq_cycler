@@ -21,7 +21,7 @@ Użycie: freq_cycler.py [-h] [-csv <url> | -no-external-csv] [-udplog <plik>]
                        [-aprslog <IP:port>] [-remote <url>] [-slave]
                        [-aprsscan] [-c <num>] [-bc <num|procent%>] [-no-blind]
                        [-f <kHz> <kHz>] [-bflush] [-ppm <ppm>] [-agc <0|1>]
-                       [-gain <wzmoc|auto>] [-bw <kHz>] [-v | -q]
+                       [-gain <wzmoc|auto>] [-bw <kHz>] [-v | -vv | -q]
                        konfig wyjście
 
 argumenty obowiązkowe:
@@ -51,6 +51,7 @@ argumenty opcjonalne:
                       ('auto' lub 0.0, 0.9, 1.4 ... 48.0, 49.6)
   -bw <kHz>           max szerokość pasma RTL (domyślnie: 1900)
   -v                  tryb szczegółowego opisu akcji
+  -vv                 tryb szczegółowy ze znacznikami czasu
   -q                  tryb cichy (pokazuje tylko błędy)
 
 
