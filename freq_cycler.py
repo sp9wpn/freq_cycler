@@ -351,9 +351,9 @@ def add_freqs(flist,landing = False):
         continue
 
     if landing:
-      f[2] = 3
-
-    selected_freqs.add((f[0],f[1],f[2]))
+      selected_freqs.add((f[0],f[1],3))
+    else:
+      selected_freqs.add((f[0],f[1],f[2]))
 
 
 
