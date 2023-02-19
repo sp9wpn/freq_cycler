@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.15.2 (29.10.2022)
+# v1.16.0 BETA (19.02.2023)
 # BSD licence
 
 import os
@@ -210,7 +210,7 @@ def thread_read_APRS(ip,port):
 
 
 def init(z1,z2):
-  global config,freq_range,qth,aprs_last_cycle,aprs_interval,sdrtst_templates
+  global config,freq_range,qth,aprs_last_cycle,aprs_interval,sdrtst_templates,l_sdrtst_templates
 
   if not os.path.isfile(args.config):
     print("ERROR: config file not found: " + args.config)
@@ -235,12 +235,17 @@ def init(z1,z2):
     sys.exit()
 
   sdrtst_templates={}
+  l_sdrtst_templates={}
+
   for t,t_name in dict(sonde_types).items():
     temp = set()
+    ltemp = set()
     section_items = config.items(t_name)
     for key,val in section_items:
       if key[:14].lower() == 'sdrtsttemplate':
         temp.add(' '.join(val.strip('"').split()))
+      if key[:17].lower() == 'ldgsdrtsttemplate':
+        ltemp.add(' '.join(val.strip('"').split()))
 
     if len(temp) > 0:
       sdrtst_templates[t] = temp
@@ -248,6 +253,25 @@ def init(z1,z2):
       print("ERROR: no SdrtstTemplate defined for %s, ignoring this type" % t_name)
       time.sleep(1)
       sonde_types.pop(t)
+
+    if len(ltemp) > 0:
+      l_sdrtst_templates[t] = ltemp
+    else:
+      l_sdrtst_templates[t] = sdrtst_templates[t]
+
+
+  l_freq_spread={}
+  for t,t_name in dict(sonde_types).items():
+    _spread = {0}
+    if config.has_option(t_name,'LdgModeFreqSpread'):
+      try:
+        (_low, _high, _step) = list(map(int, config.get(t_name,'LdgModeFreqSpread').strip('\"').split(" ")))
+        for _freq_diff in range (_low, _high+1, _step):
+          _spread.add(_freq_diff)
+      except:
+        print("ERROR: bad LdgModeFreqSpread definition for %s" % t_name)
+
+    l_freq_spread[t] = _spread
 
 
   if args.f:
@@ -286,8 +310,11 @@ def set_blind_channels():
 
 def count_sel_freqs(f):
   have=0
-  for (freq, type) in f:
-    have += len(sdrtst_templates[type])
+  for (freq, type, status) in f:
+    if status < 3:
+      have += len(sdrtst_templates[type])
+    else:
+      have += len(ldg_sdrtst_templates[type]) * l_freq_spread[type]
 
   return have
 
@@ -323,7 +350,10 @@ def add_freqs(flist,landing = False):
            or f[0] + args.bw <= max([t[0] for t in selected_freqs]) ):
         continue
 
-    selected_freqs.add((f[0],f[1]))
+    if landing:
+      f[2] = 3
+
+    selected_freqs.add((f[0],f[1],f[2]))
 
 
 
@@ -410,9 +440,15 @@ def write_sdrtst_config(freqs):
     if f[1] not in sonde_types:
       continue
 
-    for template in sdrtst_templates[f[1]]:
-      tmp.write("f %.3f" % (int(f[0])/1000.0))
-      tmp.write(" "+template+"\n")
+    if f[2] < 3:
+      for template in sdrtst_templates[f[1]]:
+        tmp.write("f %.3f" % (int(f[0])/1000.0))
+        tmp.write(" "+template+"\n")
+    else:
+      for template in ldg_sdrtst_templates[f[1]]:
+        for _freq_diff in l_freq_spread[f[1]]:
+          tmp.write("f %.3f" % ( int(f[0])+_freq_diff)/1000.0 )
+          tmp.write(" "+template+"\n")
 
     new_freqs.add((f[0],f[1]))
 
