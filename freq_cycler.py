@@ -210,7 +210,7 @@ def thread_read_APRS(ip,port):
 
 
 def init(z1,z2):
-  global config,freq_range,qth,aprs_last_cycle,aprs_interval,sdrtst_templates,l_sdrtst_templates
+  global config,freq_range,qth,aprs_last_cycle,aprs_interval,sdrtst_templates,l_sdrtst_templates,l_freq_spread
 
   if not os.path.isfile(args.config):
     print("ERROR: config file not found: " + args.config)
