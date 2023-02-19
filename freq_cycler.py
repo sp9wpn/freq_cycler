@@ -314,7 +314,7 @@ def count_sel_freqs(f):
     if status < 3:
       have += len(sdrtst_templates[type])
     else:
-      have += len(l_sdrtst_templates[type]) * l_freq_spread[type]
+      have += len(l_sdrtst_templates[type]) * len(l_freq_spread[type])
 
   return have
 
