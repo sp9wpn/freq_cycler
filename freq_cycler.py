@@ -350,6 +350,11 @@ def add_freqs(flist,landing = False):
            or f[0] + args.bw <= max([t[0] for t in selected_freqs]) ):
         continue
 
+    # avoid duplicates
+    if ( [f[0],f[1]] in [[x[0],x[1]] for x in selected_freqs]
+           and f[2] < 3):
+      continue
+
     if landing:
       selected_freqs.add((f[0],f[1],3))
     else:
@@ -434,6 +439,7 @@ def write_sdrtst_config(freqs):
     vprint("ERROR: error writing tmp file: " + args.output + ".tmp")
     return 0
 
+
   new_freqs = set()
 
   for f in sorted(freqs):
@@ -447,7 +453,7 @@ def write_sdrtst_config(freqs):
     else:
       for template in l_sdrtst_templates[f[1]]:
         for _freq_diff in l_freq_spread[f[1]]:
-          tmp.write("f %.3f" % ( int(f[0])+_freq_diff)/1000.0 )
+          tmp.write("f %.3f" % ( (int(f[0])+_freq_diff)/1000.0) )
           tmp.write(" "+template+"\n")
 
     new_freqs.add((f[0],f[1]))
