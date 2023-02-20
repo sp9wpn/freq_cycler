@@ -56,6 +56,25 @@ argumenty opcjonalne:
 
 
 
+                     * * *  Tryb lądowania  * * *
+
+Jedną z głównych funkcji freq_cycler jest tryb lądowania. Jeśli opadająca sonda
+zostanie wykryta w zasięgu zdefiniowanym w pliku konfiguracyjnym, uruchomi się
+tryb lądowania. W tym trybie:
+ - zmiany częstotliwości są wstrzymane, chyba że zostanie wykryte inne lądowanie,
+ - mogą być zastosowane alternatywne definicje dla sdrtst, jeśli zostały
+   określone jako LdgSdrtstTemplate. W ten sposób można zmniejszyć AFC (i użyć
+   rozrzutu opisanego poniżej), wyłączyć squelch itp.
+ - może zostać dodany dodatkowy rozrzut częstotliwości (wokół pierwotnej QRG)
+   do skorygowania dryftu nadajnika, np. "LdgModeFreqSpread="-2 6 2" dla
+   403.000 MHz doda dodatkowe częstotliwości oidobioru co 2 kHz od -2 do +6 kHz,
+   czyli: 402.998, 403.002, 403.004, 403.006
+
+Tryb lądowania kończy się, kiedy sonda nie jest odbierana lub przestała opadać
+przez czas określony jako SignalTimeout.
+
+
+
                      * * *  Używanie z oryginalnym dxlAPRS  * * *
 
 Jeśli używasz oryginalnego dxlAPRS, musisz wykonać trzy dodatkowe czynności:
@@ -196,6 +215,10 @@ to częstotliwość ślepego skanowania.
 Drukowane częstotliwości mają również końcówki oznaczające specjalne typy sond
  - 'p' oznacza PilotSonde, 'm' - M10/M20, 'a' - ATMS. Wszystkie pozostałe (RS41,
 RS92, DFM, MP3 i inne) nie mają końcówki.
+
+Gwiazdka z liczbą na końcu informacji o częstotliwości oznacza, że zostały dla
+niej utworzone więcej niż jeden wpis w sdrtst, z powodu kilku szablonów lub
+"rozrzutu" w trybie lądowania.
 
 
 

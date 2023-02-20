@@ -310,8 +310,8 @@ def set_blind_channels():
 
 def count_sel_freqs(f):
   have=0
-  for (freq, type, status) in f:
-    if status < 3:
+  for (freq, type, landing) in f:
+    if not landing:
       have += len(sdrtst_templates[type])
     else:
       have += len(l_sdrtst_templates[type]) * len(l_freq_spread[type])
@@ -350,16 +350,14 @@ def add_freqs(flist,landing = False):
            or f[0] + args.bw <= max([t[0] for t in selected_freqs]) ):
         continue
 
-    # avoid duplicates
-    if ( [f[0],f[1]] in [[x[0],x[1]] for x in selected_freqs]
-           and f[2] < 3):
+    # avoid duplicates, prioritize landing
+    if ( not landing and (f[0],f[1],True) in selected_freqs ):
       continue
 
-    if landing:
-      selected_freqs.add((f[0],f[1],3))
-    else:
-      selected_freqs.add((f[0],f[1],f[2]))
+    if ( landing and (f[0],f[1],False) in selected_freqs ):
+      selected_freqs.remove((f[0],f[1],False))
 
+    selected_freqs.add((f[0],f[1],landing))
 
 
 def mark_freqs_checked(freqs):
@@ -446,17 +444,22 @@ def write_sdrtst_config(freqs):
     if f[1] not in sonde_types:
       continue
 
-    if f[2] < 3:
+    _count = 0
+
+    if not f[2]:
       for template in sdrtst_templates[f[1]]:
         tmp.write("f %.3f" % (int(f[0])/1000.0))
         tmp.write(" "+template+"\n")
+        _count += 1
     else:
       for template in l_sdrtst_templates[f[1]]:
         for _freq_diff in l_freq_spread[f[1]]:
           tmp.write("f %.3f" % ( (int(f[0])+_freq_diff)/1000.0) )
           tmp.write(" "+template+"\n")
+          _count += 1
 
-    new_freqs.add((f[0],f[1]))
+    if (_count > 0):
+      new_freqs.add((f[0],f[1],_count))
 
   os.umask (oldmask)
   tmp.close()
@@ -502,7 +505,10 @@ def write_sdrtst_config(freqs):
       elif sonde_types[nf[1]] == 'sonde_atms':
         txt += 'a'
       else:
-        txt += ' '
+        txt += ''
+
+      if (nf[2] > 1):
+        txt += "*%d" % nf[2]
 
     vprint(txt)
 
@@ -1139,6 +1145,10 @@ while not exit_script.is_set():
 
       # round PilotSonde QRG to 5kHz
       if sonde_types[d[2]] == 'sonde_pilotsonde':
+        d[1] = int(round(d[1] / 5.0) * 5)
+
+      # round M10/M20 QRG to 5kHz
+      if sonde_types[d[2]] == 'sonde_m10':
         d[1] = int(round(d[1] / 5.0) * 5)
 
       try:
