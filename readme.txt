@@ -95,7 +95,6 @@ sondes from dedicated websites. New data is checked every 3 minutes. Use
 -csv argument to provide URL with this data. It can be used more than once to
 use multiple sources.
 When -csv is not used, default list of URLs is as follow:
- * http://radiosondy.info/export/csv_live.php
  * http://api.wettersonde.net/sonde_csv.php
 
 To disable this feature completely, use -no-external-csv

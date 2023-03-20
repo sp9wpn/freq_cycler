@@ -99,7 +99,6 @@ w formacie CSV ze stron poświęconym sondom. Nowe dane są pobierane co 3 minut
 Argument -csv wskazuje URL ze źródłem danych. Można go użyć więcej niż raz, aby
 pobierać dane z kilku źródeł.
 Jeśli -csv nie zostanie użyte, domyślna lista adresów jest następująca:
- * http://radiosondy.info/export/csv_live.php
  * http://api.wettersonde.net/sonde_csv.php
 
 Aby całkowicie wyłączyć tę funkcję, użyj -no-external-csv

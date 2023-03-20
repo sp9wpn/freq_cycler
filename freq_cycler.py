@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.16.0 BETA (19.02.2023)
+# v1.16.0 BETA (19.03.2023)
 # BSD licence
 
 import os
@@ -45,7 +45,6 @@ def vprint(t):
     print(t)
 
 default_external_urls = [
-	'http://radiosondy.info/export/csv_live.php',
 	'http://api.wettersonde.net/sonde_csv.php'
 	]
 
@@ -185,7 +184,7 @@ def thread_read_APRS(ip,port):
 
         # APRS login
 
-        s.sendall(("user N0CALL-0 -1 filter r/%.4f/%.4f/%d\n" %
+        s.sendall(("user N0CALL -1 filter r/%.4f/%.4f/%d\n" %
                             ( config.getfloat('main','QTHlat'),
                               config.getfloat('main','QTHlon'),
                               config.getint('main','Range') ) ).encode() )
@@ -1280,11 +1279,12 @@ while not exit_script.is_set():
 				OR status_expire >= datetime('now') )
 		ORDER BY status DESC, last_checked, random()""",(freq_range[0],freq_range[1])).fetchall()
 
+  print(freq_list)
 
   if len(landing_freqs) > 0:
     aprs_last_cycle = time.time() + config.getint('main','CycleInterval')
 
-    if [[x[0],x[1]] for x in landing_freqs] != [[x[0],x[1]] for x in old_landing_freqs]:
+    if [[round(x[0],-2),x[1]] for x in landing_freqs] != [[round(x[0],-2),x[1]] for x in old_landing_freqs]:
 
       old_selected_freqs=selected_freqs
       selected_freqs=set()
