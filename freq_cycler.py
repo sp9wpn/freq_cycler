@@ -524,15 +524,21 @@ def calc_distance(p1,p2):
 def sonde_type_from_serial(s):
   if s.isdigit():
     if s[0:2] == '16' or s[0:2] == '17' or s[0:2] == '18' or s[0:2] == '19' or s[0:2] == '00':
-      return 0					# DFM (standard)
+      return 0					# DFM
     else:
       return 2					# M10/M20
-  elif s[0:3] == 'ME0' or s[0:3] == 'ME1':
+  elif s[0:2] == 'ME':
     return 2					# M10/M20
-  elif s[0:3] == 'ME8' or s[0:3] == 'ME9':
-    return 2					# M10/M20
+  elif s[0:2] == 'SC':
+    return 0					# SRSC sprawdzić, czy 0
   elif s[0:3] == 'AT2':
     return 3					# ATMS
+  elif s[0:3] == 'MRZ':
+    return 0					# MP3
+  elif s[0:3] == 'MTS':
+    return 0					# MTS sprawdzić, czy 0
+  elif s[0:3] == 'IMS':
+    return 0					# MEISEI sprawdzić, czy 0
   elif s[0:1] == 'P' and not s[1:2].isdigit():
     return 1					# pilotSonde
   elif s[0:1] == 'B' and not s[1:2].isdigit():
@@ -540,7 +546,9 @@ def sonde_type_from_serial(s):
   elif s[0:1] == 'G' and not s[1:2].isdigit():
     return 1					# pilotSonde
   elif s[0:2] == 'DF':
-    return 0					# DFM (standard)
+    return 0					# DFM
+  elif s[0:1] == 'D' and s[2:4].isdigit():
+      return 0					# DFM
   else:
     return 0					# standard
 
