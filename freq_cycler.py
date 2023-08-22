@@ -595,7 +595,7 @@ def sonde_type_from_serial(s):
   elif s[0:3] == 'MTS':
     return 0					# MTS sprawdzić, czy 0
   elif s[0:3] == 'IMS':
-    return 0					# MEISEI sprawdzić, czy 0
+    return 0					# MEISEI
   elif s[0:1] == 'P' and not s[1:2].isdigit():
     return 1					# pilotSonde
   elif s[0:1] == 'B' and not s[1:2].isdigit():

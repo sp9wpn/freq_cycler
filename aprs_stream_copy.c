@@ -129,7 +129,7 @@ int main(int argc, char **argv)
                     write(fout_fd, buf, bytes % 4);
                 clear_buffer--;
             }
-            nanosleep((const struct timespec[]){{0, 10000000L}}, NULL); // 0.01 sec
+            nanosleep((const struct timespec[]){{0, 10000000L}}, NULL); // 0.05 sec
         }
       } else if (bytes == 0) {			// EOF
           return 0;
