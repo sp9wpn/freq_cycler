@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 
 # by Wojtek SP9WPN
-# v1.15.2 (29.10.2022)
+# v1.15.3 (22.08.2023)
 # BSD licence
 
 import os
@@ -601,6 +601,8 @@ def read_csv(file):
 
           try:
             i_time = int(r[8])
+            while i_time > time.time() + 600:	# dirty fix for incorrect time zone
+              i_time -= 3600
           except:
             i_time = 0
 
@@ -621,7 +623,7 @@ def read_csv(file):
 
           try:
             i_time = (datetime.strptime(r[1], '%Y-%m-%dT%H:%M:%S') - datetime(1970,1,1)).total_seconds()
-            while i_time > time.time() + 600:
+            while i_time > time.time() + 600:	# dirty fix for incorrect time zone
               i_time -= 3600
           except:
             i_time = 0
