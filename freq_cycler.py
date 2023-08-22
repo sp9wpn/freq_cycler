@@ -587,13 +587,13 @@ def sonde_type_from_serial(s):
   elif s[0:2] == 'ME':
     return 2					# M10/M20
   elif s[0:2] == 'SC':
-    return 0					# SRSC sprawdzić, czy 0
+    return 0					# SRSC sprawdzic, czy 0
   elif s[0:3] == 'AT2':
     return 3					# ATMS
   elif s[0:3] == 'MRZ':
     return 0					# MP3
   elif s[0:3] == 'MTS':
-    return 0					# MTS sprawdzić, czy 0
+    return 0					# MTS sprawdzic, czy 0
   elif s[0:3] == 'IMS':
     return 0					# MEISEI
   elif s[0:1] == 'P' and not s[1:2].isdigit():
