@@ -62,6 +62,8 @@ Jedną z głównych funkcji freq_cycler jest tryb lądowania. Jeśli opadająca 
 zostanie wykryta w zasięgu zdefiniowanym w pliku konfiguracyjnym, uruchomi się
 tryb lądowania. W tym trybie:
  - zmiany częstotliwości są wstrzymane, chyba że zostanie wykryte inne lądowanie,
+ - liczba kanałów określana automatycznie (zobacz niżej) jest zredukowana,
+   aby zapobiec przeciążeniu procesora
  - mogą być zastosowane alternatywne definicje dla sdrtst, jeśli zostały
    określone jako LdgSdrtstTemplate. W ten sposób można zmniejszyć AFC (i użyć
    rozrzutu opisanego poniżej), wyłączyć squelch itp.
@@ -147,6 +149,7 @@ zostanie uruchomiony i temperatura odczytana z jego wyjścia. Zwykłe pliki (jak
 /sys/class/thermal/thermal_zone0/temp) są odczytywane bezpośrednio. Ilość
 kanałów jest ustawiana proporcjonalnie pomiędzy LowTemp (niska temperatura)
 oraz HighTemp (wysoka).
+W trybie lądowania ilość kanałów jest zmniejszana o 33%.
 
 
 

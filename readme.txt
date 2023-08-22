@@ -59,6 +59,7 @@ One of the main features of freq_cycler is the landing mode. If a descending
 sonde is detected withing the range defined in the config file, freq_cycler
 starts landing mode. In this mode:
  - frequency cycling is stopped, unless another landing is detected,
+ - number of channels in auto mode (see below) is reduced to prevent CPU overload
  - alternate sdrtst templates will be used, if defined LdgSdrtstTemplate. This
    may reduce AFC (and use spreading described below), disable squelch etc.
  - additional frequency "spread" (frequencies around original QRG) can be added
@@ -140,6 +141,7 @@ for Raspberry Pi. The "Sensor" defines source of data. If it is an executable
 read from output. Ordinary files (like /sys/class/thermal/thermal_zone0/temp)
 are read directly. Number of channels is adjusted proportionally between
 defined LowTemp and HighTemp.
+During landing mode, number of channels is reduced by 33%.
 
 
 
