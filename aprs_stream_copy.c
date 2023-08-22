@@ -128,9 +128,8 @@ int main(int argc, char **argv)
                 if (bytes % 4 != 0)
                     write(fout_fd, buf, bytes % 4);
                 clear_buffer--;
-                nanosleep((const struct timespec[]){{0, 10000000L}}, NULL); // 0.05 sec
             }
-
+            nanosleep((const struct timespec[]){{0, 10000000L}}, NULL); // 0.01 sec
         }
       } else if (bytes == 0) {			// EOF
           return 0;
