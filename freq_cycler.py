@@ -601,8 +601,12 @@ def read_csv(file):
 
           try:
             i_time = int(r[8])
-            while i_time > time.time() + 600:	# dirty fix for incorrect time zone
-              i_time -= 3600
+            if file[0:28] == "https://sn.skp.wodzislaw.pl/":
+              try:
+                i_time = int(r[10])
+              except:
+                i_time = int(r[8])
+
           except:
             i_time = 0
 
@@ -623,8 +627,6 @@ def read_csv(file):
 
           try:
             i_time = (datetime.strptime(r[1], '%Y-%m-%dT%H:%M:%S') - datetime(1970,1,1)).total_seconds()
-            while i_time > time.time() + 600:	# dirty fix for incorrect time zone
-              i_time -= 3600
           except:
             i_time = 0
 
@@ -635,6 +637,13 @@ def read_csv(file):
 
         else:
           raise
+
+        if i_time < time.time() - 86400 or i_time > time.time() + 86400:
+          i_time = 0
+
+        if external:
+          while i_time > time.time() + 600:	# dirty fix for incorrect time zone
+            i_time -= 3600
 
       except:
         continue
