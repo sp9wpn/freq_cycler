@@ -1,4 +1,5 @@
 #!/usr/bin/python -u
+# coding=utf8
 
 # by Wojtek SP9WPN
 # v1.15.3 (22.08.2023)
