@@ -2,7 +2,7 @@
 # coding=utf8
 
 # by Wojtek SP9WPN
-# v1.15.3 (22.08.2023)
+# v1.16.1 (22.08.2023)
 # BSD licence
 
 import os
@@ -41,12 +41,11 @@ def verbose(t):
 
 def vprint(t):
   if args.vv:
-    print(datetime.now().strftime("%d.%m.%Y %H:%M:%S ") + t)
+    print("%s %s" % (datetime.now().strftime("%d.%m.%Y %H:%M:%S"), t) )
   else:
     print(t)
 
 default_external_urls = [
-	'http://radiosondy.info/export/csv_live.php',
 	'http://api.wettersonde.net/sonde_csv.php'
 	]
 
@@ -186,7 +185,7 @@ def thread_read_APRS(ip,port):
 
         # APRS login
 
-        s.sendall(("user N0CALL-0 -1 filter r/%.4f/%.4f/%d\n" %
+        s.sendall(("user N0CALL -1 filter r/%.4f/%.4f/%d\n" %
                             ( config.getfloat('main','QTHlat'),
                               config.getfloat('main','QTHlon'),
                               config.getint('main','Range') ) ).encode() )
@@ -209,9 +208,16 @@ def thread_read_APRS(ip,port):
 
 
 
+def roundF(f,r):
+  f = round(float(f)/r)
+  f = f * r
+  return int(f)
+
+
+
 
 def init(z1,z2):
-  global config,freq_range,qth,aprs_last_cycle,aprs_interval,sdrtst_templates
+  global config,freq_range,qth,aprs_last_cycle,aprs_interval,sdrtst_templates,l_sdrtst_templates,l_freq_spread
 
   if not os.path.isfile(args.config):
     print("ERROR: config file not found: " + args.config)
@@ -236,12 +242,17 @@ def init(z1,z2):
     sys.exit()
 
   sdrtst_templates={}
+  l_sdrtst_templates={}
+
   for t,t_name in dict(sonde_types).items():
     temp = set()
+    ltemp = set()
     section_items = config.items(t_name)
     for key,val in section_items:
       if key[:14].lower() == 'sdrtsttemplate':
         temp.add(' '.join(val.strip('"').split()))
+      if key[:17].lower() == 'ldgsdrtsttemplate':
+        ltemp.add(' '.join(val.strip('"').split()))
 
     if len(temp) > 0:
       sdrtst_templates[t] = temp
@@ -249,6 +260,25 @@ def init(z1,z2):
       print("ERROR: no SdrtstTemplate defined for %s, ignoring this type" % t_name)
       time.sleep(1)
       sonde_types.pop(t)
+
+    if len(ltemp) > 0:
+      l_sdrtst_templates[t] = ltemp
+    else:
+      l_sdrtst_templates[t] = sdrtst_templates[t]
+
+
+  l_freq_spread={}
+  for t,t_name in dict(sonde_types).items():
+    _spread = {0}
+    if config.has_option(t_name,'LdgModeFreqSpread'):
+      try:
+        (_low, _high, _step) = list(map(int, config.get(t_name,'LdgModeFreqSpread').strip('\"').split(" ")))
+        for _freq_diff in range (_low, _high+1, _step):
+          _spread.add(_freq_diff)
+      except:
+        print("ERROR: bad LdgModeFreqSpread definition for %s" % t_name)
+
+    l_freq_spread[t] = _spread
 
 
   if args.f:
@@ -287,8 +317,11 @@ def set_blind_channels():
 
 def count_sel_freqs(f):
   have=0
-  for (freq, type) in f:
-    have += len(sdrtst_templates[type])
+  for (freq, type, landing) in f:
+    if not landing:
+      have += len(sdrtst_templates[type])
+    else:
+      have += len(l_sdrtst_templates[type]) * len(l_freq_spread[type])
 
   return have
 
@@ -324,8 +357,17 @@ def add_freqs(flist,landing = False):
            or f[0] + args.bw <= max([t[0] for t in selected_freqs]) ):
         continue
 
-    selected_freqs.add((f[0],f[1]))
+    # remove non-landing duplicates (this shouldn't happen)
+    if landing:
+      for _xx in selected_freqs:
+        if [roundF(_xx[0],50),_xx[1],_xx[2]] == [roundF(f[0],50),f[1],False]:
+          selected_freqs.remove(_xx)
 
+    # skip duplicates (as rounded to 50kHz)
+    if [roundF(f[0],50),f[1]] in [[roundF(x[0],50),x[1]] for x in selected_freqs]:
+      continue
+
+    selected_freqs.add((f[0],f[1],landing))
 
 
 def mark_freqs_checked(freqs):
@@ -405,17 +447,29 @@ def write_sdrtst_config(freqs):
     vprint("ERROR: error writing tmp file: " + args.output + ".tmp")
     return 0
 
+
   new_freqs = set()
 
   for f in sorted(freqs):
     if f[1] not in sonde_types:
       continue
 
-    for template in sdrtst_templates[f[1]]:
-      tmp.write("f %.3f" % (int(f[0])/1000.0))
-      tmp.write(" "+template+"\n")
+    _count = 0
 
-    new_freqs.add((f[0],f[1]))
+    if not f[2]:
+      for template in sdrtst_templates[f[1]]:
+        tmp.write("f %.3f" % (int(f[0])/1000.0))
+        tmp.write(" "+template+"\n")
+        _count += 1
+    else:
+      for template in l_sdrtst_templates[f[1]]:
+        for _freq_diff in l_freq_spread[f[1]]:
+          tmp.write("f %.3f" % ( (int(f[0])+_freq_diff)/1000.0) )
+          tmp.write(" "+template+"\n")
+          _count += 1
+
+    if (_count > 0):
+      new_freqs.add((f[0],f[1],_count,f[2]))
 
   os.umask (oldmask)
   tmp.close()
@@ -431,7 +485,7 @@ def write_sdrtst_config(freqs):
     txt = "New freqs:"
 
     for nf in sorted(new_freqs):
-      status = dbc.execute("""SELECT max(status), landing_mode, serial
+      status = dbc.execute("""SELECT status, landing_mode, serial
 				FROM freqs
 				WHERE freq = ?
 				  AND type = ?
@@ -441,7 +495,7 @@ def write_sdrtst_config(freqs):
 				LIMIT 1""",
                        (nf[0],nf[1])).fetchone()
 
-      if status[1] != None:
+      if nf[3] == True or status[1] != None:
         txt += '  !'
       elif status[0] == 3:
         txt += '  ^'
@@ -461,7 +515,10 @@ def write_sdrtst_config(freqs):
       elif sonde_types[nf[1]] == 'sonde_atms':
         txt += 'a'
       else:
-        txt += ' '
+        txt += ''
+
+      if (nf[2] > 1):
+        txt += "*%d" % nf[2]
 
     vprint(txt)
 
@@ -531,15 +588,15 @@ def sonde_type_from_serial(s):
   elif s[0:2] == 'ME':
     return 2					# M10/M20
   elif s[0:2] == 'SC':
-    return 0					# SRSC sprawdzić, czy 0
+    return 0					# SRSC sprawdzic, czy 0
   elif s[0:3] == 'AT2':
     return 3					# ATMS
   elif s[0:3] == 'MRZ':
     return 0					# MP3
   elif s[0:3] == 'MTS':
-    return 0					# MTS sprawdzić, czy 0
+    return 0					# MTS sprawdzic, czy 0
   elif s[0:3] == 'IMS':
-    return 0					# MEISEI sprawdzić, czy 0
+    return 0					# MEISEI
   elif s[0:1] == 'P' and not s[1:2].isdigit():
     return 1					# pilotSonde
   elif s[0:1] == 'B' and not s[1:2].isdigit():
@@ -602,11 +659,16 @@ def read_csv(file):
 
           try:
             i_time = int(r[8])
+
             if file[0:28] == "https://sn.skp.wodzislaw.pl/":
               try:
                 i_time = int(r[10])
               except:
                 i_time = int(r[8])
+
+            while i_time > time.time() + 600:	# dirty fix for incorrect time zone
+              i_time -= 3600
+
 
           except:
             i_time = 0
@@ -628,6 +690,9 @@ def read_csv(file):
 
           try:
             i_time = (datetime.strptime(r[1], '%Y-%m-%dT%H:%M:%S') - datetime(1970,1,1)).total_seconds()
+            while i_time > time.time() + 600:	# dirty fix for incorrect time zone
+              i_time -= 3600
+
           except:
             i_time = 0
 
@@ -675,7 +740,7 @@ def read_csv(file):
           if i_time+(config.getint('main','SignalTimeout') * 60) < time.time():
             continue
 
-          status_expire = i_time + config.getint('main','SignalTimeout') * 60
+          status_expire = int(i_time + config.getint('main','SignalTimeout') * 60)
 
         except:
           status_expire = int(time.time() + config.getint('main','SignalTimeout') * 60)
@@ -714,7 +779,7 @@ def APRS_decode(line,source=''):
 
       #L4340196 *220443h5120.90N/01952.39EO182/001/A=000743!wJ(!Clb=-0.6m/s f=404.50MHz BK=Off
 
-      sonde_id=info[:9].strip()
+      sonde_id=info[:9].strip().decode("UTF-8")
       lat=float(info[17:19])+float(info[19:21])/60+float(info[22:24])/60/100
       lon=float(info[26:29])+float(info[29:31])/60+float(info[32:34])/60/100
 
@@ -763,7 +828,7 @@ def APRS_decode(line,source=''):
 
       # serial, freq, type, status, last_alt, status_expire, distance, vs
       q.put((sonde_id,qrg,sonde_type,3,alt,status_expire,distance,vs))
-      verbose("%s:  %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (source, sonde_id.decode("UTF-8"), lat, lon, alt, vs, qrg/1000.0 ))
+      verbose("%s: %1d %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (source, sonde_type, sonde_id, lat, lon, alt, vs, qrg/1000.0 ))
 
   except:
     pass
@@ -789,8 +854,12 @@ def last_aprs_log_update():
     return -1
 
 
-def auto_channels():
+def auto_channels(_landing = False):
   global channels, blind_channels
+
+  if not config.has_option('auto_channels','Sensor'):
+    return
+
   try:
     script = config.get('auto_channels','Sensor')
 
@@ -816,7 +885,10 @@ def auto_channels():
               / (   ( config.getint('auto_channels','HighTemp')-float(config.getint('auto_channels','LowTemp')) )
                 / ( config.getint('auto_channels','MaxChannels')-config.getint('auto_channels','MinChannels') ) ) )
 
-      new_channels = round(new_channels)
+    if _landing:
+      new_channels = max(new_channels * 0.66, config.getint('auto_channels','MinChannels'))
+
+    new_channels = round(new_channels)
    
     if new_channels != channels:
       verbose("auto_channels: temp=%d'C, adjusting channels to %d" % (temp, new_channels))
@@ -1045,7 +1117,6 @@ while not exit_script.is_set():
 
         if line[0:3] == b'#G:':
           g = line[3:].split(b',',2)
-          #if calc_distance((float(g[0]),float(g[1])),qth) > int(g[2]):
           if calc_distance((g[0],g[1]),qth) > int(g[2]):
             verbose("Remote control file out of geo range")
             remote_invalid = True
@@ -1116,8 +1187,11 @@ while not exit_script.is_set():
         continue;
 
       # round PilotSonde QRG to 5kHz
+      # all others to 10kHz
       if sonde_types[d[2]] == 'sonde_pilotsonde':
-        d[1] = int(round(d[1] / 5.0) * 5)
+        d[1] = roundF(d[1],5)
+      else:
+        d[1] = roundF(d[1],10)
 
       try:
         dbc.execute("""INSERT INTO freqs (serial, freq, type, status, last_alt, status_expire, distance)
@@ -1136,7 +1210,7 @@ while not exit_script.is_set():
           continue
 
       finally:
-        # check for landing mode
+        # check for landing
         try:
           if ( dbc.rowcount > 0
                and int(d[4]) <= config.getint('landing_mode','Altitude')
@@ -1150,10 +1224,12 @@ while not exit_script.is_set():
 				AND status_expire > datetime('now')
 				AND landing_mode IS NULL""",
                            (d[0], d[1], d[2]) )
-            if ( dbc.rowcount > 0
-                 and not args.q ):
-              vprint("Sonde landing detected: %s (%.3f)" % (d[0],d[1]/1000.0))
+            if dbc.rowcount > 0:
+              # prevent starting APRS cycle now
               aprs_last_cycle = int(time.time() + config.getint('main','CycleInterval') + 1)
+              if not args.q:
+                vprint("Sonde landing detected: %s (%.3f)" % (d[0],d[1]/1000.0))
+
         except:
           vprint("ERROR when checking for landing:")
           vprint(d)
@@ -1222,9 +1298,6 @@ while not exit_script.is_set():
     break;
 
 
-  if config.has_option('auto_channels','Sensor'):
-    auto_channels()
-
   # select channels
   old_landing_freqs=landing_freqs
 
@@ -1238,7 +1311,6 @@ while not exit_script.is_set():
 				OR status_expire >= datetime('now') )
 		ORDER BY status DESC, distance ASC""",(freq_range[0],freq_range[1],args.output)).fetchall()
 
-
   freq_list=dbc.execute("""SELECT DISTINCT freq, type, status
 		FROM freqs
 		WHERE landing_mode IS NULL
@@ -1248,12 +1320,16 @@ while not exit_script.is_set():
 				OR status_expire >= datetime('now') )
 		ORDER BY status DESC, last_checked, random()""",(freq_range[0],freq_range[1])).fetchall()
 
-
   if len(landing_freqs) > 0:
+    auto_channels(True)
     aprs_last_cycle = time.time() + config.getint('main','CycleInterval')
 
-    if [[x[0],x[1]] for x in landing_freqs] != [[x[0],x[1]] for x in old_landing_freqs]:
+    have_new_landing_freq = False
+    for _lf in landing_freqs:
+      if [roundF(_lf[0],50),_lf[1]] not in [[roundF(x[0],50),x[1]] for x in old_landing_freqs]:
+        have_new_landing_freq = True
 
+    if have_new_landing_freq:
       old_selected_freqs=selected_freqs
       selected_freqs=set()
       landing_lock = False
@@ -1268,6 +1344,7 @@ while not exit_script.is_set():
       landing_lock = True
 
   else:
+    auto_channels()
     set_blind_channels()
     old_selected_freqs=selected_freqs
     selected_freqs=set()

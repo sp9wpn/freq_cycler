@@ -53,13 +53,32 @@ optional arguments:
 
 
 
+                     * * *  Landing mode  * * *
+
+One of the main features of freq_cycler is the landing mode. If a descending
+sonde is detected withing the range defined in the config file, freq_cycler
+starts landing mode. In this mode:
+ - frequency cycling is stopped, unless another landing is detected,
+ - number of channels in auto mode (see below) is reduced to prevent CPU overload
+ - alternate sdrtst templates will be used, if defined LdgSdrtstTemplate. This
+   may reduce AFC (and use spreading described below), disable squelch etc.
+ - additional frequency "spread" (frequencies around original QRG) can be added
+   to mitigate transmitter drift, eg. LdgModeFreqSpread="-2 6 2" for 403.000 MHz
+   will add listeners every 2 kHz from -2 to +6 kHz, ie.: 402.998, 403.002,
+   403.004, 403.006
+ 
+Landing mode ends after sonde is no longer heard or stops descending for time
+defined as SignalTimeout.
+
+
+
                      * * *  Using with original dxlAPRS  * * *
 
 If you're using original dxlAPRS, three extra steps have to be followed:
 
 1. dxlAPRS does not provide /tmp/sonde.csv, so to extract information about
 locally received sondes, freq_cycler needs to read log by local udpgate4. You
-need to use level 0 logging in udpgate4, ie. -l 0:/tmp/udpgate.log
+pgate4, ie. -l 0:/tmp/udpgate.log
 Use -udplog <file> parameter to point freq_cycler to this log file.
 
 2. As dxlAPRS does not decode PilotSondes, remove relevant section from the
@@ -77,7 +96,6 @@ sondes from dedicated websites. New data is checked every 3 minutes. Use
 -csv argument to provide URL with this data. It can be used more than once to
 use multiple sources.
 When -csv is not used, default list of URLs is as follow:
- * http://radiosondy.info/export/csv_live.php
  * http://api.wettersonde.net/sonde_csv.php
 
 To disable this feature completely, use -no-external-csv
@@ -123,6 +141,7 @@ for Raspberry Pi. The "Sensor" defines source of data. If it is an executable
 read from output. Ordinary files (like /sys/class/thermal/thermal_zone0/temp)
 are read directly. Number of channels is adjusted proportionally between
 defined LowTemp and HighTemp.
+During landing mode, number of channels is reduced by 33%.
 
 
 
@@ -186,6 +205,9 @@ considered lost. A frequency without a prefix is a blind-scanning frequency.
 Frequencies have also suffixes to indicate special sonde types - 'p' is for
 PilotSonde, 'm' is for M10/M20, 'a' for ATMS. All other (RS41, RS92, DFM, MP3...)
 have no suffix.
+
+Asterisk with a number after channel data indicates that more than one sdrtst
+entry has been created for it, due multiple templates or landing mode "spread".
 
 
 
