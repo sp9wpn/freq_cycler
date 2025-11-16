@@ -2,7 +2,7 @@
 # coding=utf8
 
 # by Wojtek SP9WPN
-# v1.16.1 (22.08.2023)
+# v1.16.2 (15.11.2025)
 # BSD licence
 
 import os
@@ -193,7 +193,10 @@ def thread_read_APRS(ip,port):
       line = s.recv(1200)
 
       if line:
-        APRS_decode(line,'aprs')
+        if (ip == '127.0.0.1' or ip == 'localhost'):
+          APRS_decode(line,'aprs_loc')
+        else:
+          APRS_decode(line,'aprs_ext')
       else:
         vprint("APRS connection error, reconnecting in 20s")
         need_connect = True
@@ -205,7 +208,6 @@ def thread_read_APRS(ip,port):
       need_connect = True
       s.close()
       exit_script.wait(20)
-
 
 
 def roundF(f,r):
@@ -772,7 +774,7 @@ def APRS_decode(line,source=''):
   try:
     if (line and line.find(b":;")>-0):
       line_parts=line.split(b":;")
-      if (source != 'aprs' and line_parts[0].find(b"U:")==-1):
+      if (source[:4] != 'aprs' and line_parts[0].find(b"U:")==-1):
         return None
 
       info=line_parts[1]
@@ -786,24 +788,24 @@ def APRS_decode(line,source=''):
       if not ( info[25:26] == b'/' and info[35:36] == b'O' ):
         return None						# not /O (balloon)
 
-      m=re.search(b'(?<=A=)\w+',info)
+      m=re.search(r'(?<=A=)\w+',info)
       if m:
         alt=int(int(m.group(0))/3.2808)
       else:
         return None
 
       qrg=0
-      m=re.search(b'\sf=([0-9]{3}\.[0-9]+)(MHz)?',info)
+      m=re.search(r'\sf=([0-9]{3}\.[0-9]+)(MHz)?',info)
       if m:
         qrg=m.group(1)
 
       if (qrg == 0):
-        m=re.search(b'\s([0-9\.]+)MHz',info)
+        m=re.search(r'\s([0-9\.]+)MHz',info)
         if m:
           qrg=m.group(1)
 
       if (qrg == 0):
-        m=re.search(b'\srx=([0-9]{6})\(',info)
+        m=re.search(r'\srx=([0-9]{6})\(',info)
         if m:
           qrg=float(m.group(1))/1000.0
 
@@ -813,7 +815,7 @@ def APRS_decode(line,source=''):
 
       qrg=int(float(qrg)*1000.0)
 
-      m=re.search(b'(?<=Clb=)(-?[0-9.])+',info)
+      m=re.search(r'(?<=Clb=)(-?[0-9.])+',info)
       if m:
         vs=float(m.group(0))
       else:
@@ -827,7 +829,11 @@ def APRS_decode(line,source=''):
       status_expire = int(time.time() + config.getint('main','SignalTimeout') * 60)
 
       # serial, freq, type, status, last_alt, status_expire, distance, vs
-      q.put((sonde_id,qrg,sonde_type,3,alt,status_expire,distance,vs))
+      if (source == 'aprs_ext'):
+        q.put((sonde_id,qrg,sonde_type,2,alt,status_expire,distance,vs))
+      else:
+        q.put((sonde_id,qrg,sonde_type,3,alt,status_expire,distance,vs))
+
       verbose("%s: %1d %-9s  %8.5f  %8.5f  %5dm  %5.1fm/s  %.3fMHz" % (source, sonde_type, sonde_id, lat, lon, alt, vs, qrg/1000.0 ))
 
   except:
@@ -870,7 +876,7 @@ def auto_channels(_landing = False):
       data = ac_file.read(64)
       ac_file.close()
 
-    m=re.search('([0-9]+)',str(data))
+    m=re.search(r'([0-9]+)',str(data))
     temp=int(m.group(1))
     if temp > 1000:
       temp = temp / 1000
