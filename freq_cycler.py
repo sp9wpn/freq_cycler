@@ -2,7 +2,7 @@
 # coding=utf8
 
 # by Wojtek SP9WPN
-# v1.16.2 (15.11.2025)
+# v1.16.3 (16.11.2025)
 # BSD licence
 
 import os
@@ -788,24 +788,24 @@ def APRS_decode(line,source=''):
       if not ( info[25:26] == b'/' and info[35:36] == b'O' ):
         return None						# not /O (balloon)
 
-      m=re.search(r'(?<=A=)\w+',info)
+      m=re.search(b'(?<=A=)\\w+',info)
       if m:
         alt=int(int(m.group(0))/3.2808)
       else:
         return None
 
       qrg=0
-      m=re.search(r'\sf=([0-9]{3}\.[0-9]+)(MHz)?',info)
+      m=re.search(b'\\sf=([0-9]{3}\\.[0-9]+)(MHz)?',info)
       if m:
         qrg=m.group(1)
 
       if (qrg == 0):
-        m=re.search(r'\s([0-9\.]+)MHz',info)
+        m=re.search(b'\\s([0-9\\.]+)MHz',info)
         if m:
           qrg=m.group(1)
 
       if (qrg == 0):
-        m=re.search(r'\srx=([0-9]{6})\(',info)
+        m=re.search(b'\\srx=([0-9]{6})\\(',info)
         if m:
           qrg=float(m.group(1))/1000.0
 
@@ -815,7 +815,7 @@ def APRS_decode(line,source=''):
 
       qrg=int(float(qrg)*1000.0)
 
-      m=re.search(r'(?<=Clb=)(-?[0-9.])+',info)
+      m=re.search(b'(?<=Clb=)(-?[0-9.])+',info)
       if m:
         vs=float(m.group(0))
       else:
